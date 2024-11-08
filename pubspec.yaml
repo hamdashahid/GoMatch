@@ -1,0 +1,52 @@
+name: gomatch
+description: "A Ride Sharing App."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0-114.0.dev
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  firebase_database: ^11.1.4
+  fluttertoast: ^8.2.8
+  google_maps_flutter: ^2.9.0
+  flutter_svg: ^2.0.10+1
+  rive: ^0.13.14
+  rive_animated_icon: ^2.0.1
+  geolocator: ^13.0.1
+  http: ^1.2.2
+  provider: ^6.1.2
+  flutter_map: ^7.0.2 
+  latlong2: ^0.9.1
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Signatra
+      fonts:
+        - asset: assets/fonts/Signatra.ttf
+    - family: Brand-Regular
+      fonts:
+        - asset: assets/fonts/bolt-regular.ttf
+    - family: Brand Bold
+      fonts:
+        - asset: assets/fonts/bolt-semibold.ttf
+
+  assets:
+    - assets/images/
+    - assets/fonts/
+

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "696476026384",
+    "project_id": "gomatch-43bca",
+    "storage_bucket": "gomatch-43bca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:696476026384:android:3d1cc4364d6c8ae828ac95",
+        "android_client_info": {
+          "package_name": "com.ridesharing.gomatch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq0xGrHbNMO749u_RwruDV1V6fxUU_zCY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
