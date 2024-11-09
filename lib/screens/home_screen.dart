@@ -118,26 +118,26 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           mapKey.isNotEmpty
-          ?GoogleMap(
-            mapType: MapType.normal,
-            myLocationButtonEnabled: true,
-            initialCameraPosition: _kGooglePlex,
-            //for user's current loc
-            myLocationEnabled: true,
-            zoomGesturesEnabled: true,
-            zoomControlsEnabled: true,
+              ? GoogleMap(
+                  mapType: MapType.normal,
+                  myLocationButtonEnabled: true,
+                  initialCameraPosition: _kGooglePlex,
+                  //for user's current loc
+                  myLocationEnabled: true,
+                  zoomGesturesEnabled: true,
+                  zoomControlsEnabled: true,
 
-            onMapCreated: (GoogleMapController controller) {
-              _controllerGoogleMap.complete(controller);
-              newGoogleMapController = controller;
+                  onMapCreated: (GoogleMapController controller) {
+                    _controllerGoogleMap.complete(controller);
+                    newGoogleMapController = controller;
 
-              //for user's current loc
-              locatePosition();
-            },
-          )
-          : const Center(
-            child: Text('Google Maps is disabled'),
-          ),
+                    //for user's current loc
+                    locatePosition();
+                  },
+                )
+              : const Center(
+                  child: Text('Google Maps is disabled'),
+                ),
 
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
