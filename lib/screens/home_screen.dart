@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           mapKey.isNotEmpty
               ?  Padding(
-                padding: const EdgeInsets.all(15.0),
+                padding: const EdgeInsets.only(top: 90 , bottom: 160 , left: 20 , right: 20),
                 child: GoogleMap(
                     mapType: MapType.normal,
                     myLocationButtonEnabled: true,
