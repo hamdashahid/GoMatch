@@ -65,7 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+        // desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
 
       // Only geocode if moved more than 100 meters from the previous position
       double distance = Geolocator.distanceBetween(previousLatitude,
@@ -102,10 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(33.6844, 73.0479), // Coordinates for Islamabad, Pakistan
-    zoom: 10, // Adjust zoom level as per your needs
-  );
+  static const LatLng _pGooglePlex = LatLng(37.42796133580664, -122.085749655962);
 
   // Variables to track button position
   double buttonX = 295; // Initial horizontal position
@@ -118,23 +119,29 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           mapKey.isNotEmpty
-              ? GoogleMap(
-                  mapType: MapType.normal,
-                  myLocationButtonEnabled: true,
-                  initialCameraPosition: _kGooglePlex,
-                  //for user's current loc
-                  myLocationEnabled: true,
-                  zoomGesturesEnabled: true,
-                  zoomControlsEnabled: true,
-
-                  onMapCreated: (GoogleMapController controller) {
-                    _controllerGoogleMap.complete(controller);
-                    newGoogleMapController = controller;
-
+              ?  Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: GoogleMap(
+                    mapType: MapType.normal,
+                    myLocationButtonEnabled: true,
+                    initialCameraPosition: const CameraPosition(
+                      target: _pGooglePlex,
+                      zoom: 13,
+                    ),
                     //for user's current loc
-                    locatePosition();
-                  },
-                )
+                    myLocationEnabled: true,
+                      zoomGesturesEnabled: true,
+                    zoomControlsEnabled: true,
+                
+                    onMapCreated: (GoogleMapController controller) {
+                      _controllerGoogleMap.complete(controller);
+                      newGoogleMapController = controller;
+                
+                      //for user's current loc
+                      locatePosition();
+                    },
+                  ),
+              )
               : const Center(
                   child: Text('Google Maps is disabled'),
                 ),
