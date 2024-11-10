@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:geolocator/geolocator.dart';
 import 'package:gomatch/Assistants/assistantMethods.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
@@ -11,6 +12,8 @@ import 'package:gomatch/components/home_screen/car_card.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:gomatch/configMaps.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
+import 'package:geocoding/geocoding.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String idScreen = "HomeScreen";
@@ -22,12 +25,75 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late LatLng _homeCoordinates;
+  late LatLng _workCoordinates;
+
+  // Function to add home and work markers to the map
+  void _addHomeAndWorkMarkers() async {
+    setState(() async {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('homeLocation'),
+          position: _homeCoordinates,
+          infoWindow: InfoWindow(title: 'Home Location'),
+          // icon: await BitmapDescriptor.asset(
+          //   const ImageConfiguration(size: Size(48, 48)),
+          //   'assets/home_marker.png',
+          // ),
+        ),
+      );
+      markers.add(
+        Marker(
+          markerId: const MarkerId('workLocation'),
+          position: _workCoordinates,
+          infoWindow: InfoWindow(title: 'Work Location'),
+          // icon: await BitmapDescriptor.asset(
+          //   const ImageConfiguration(size: Size(48, 48)),
+          //   'assets/work_marker.png',
+          // ),
+        ),
+      );
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize addresses
+    homeAddress = '123 Home St, Hometown';
+    workAddress = '456 Work Ave, Worktown';
+    _setInitialLocation();
+    _initializeHomeAndWorkCoordinates();
+  }
+
+  Future<void> _initializeHomeAndWorkCoordinates() async {
+    LatLng? homeCoords = await _geocodeAddress(homeAddress);
+    LatLng? workCoords = await _geocodeAddress(workAddress);
+
+    if (homeCoords != null && workCoords != null) {
+      setState(() {
+        _homeCoordinates = homeCoords;
+        _workCoordinates = workCoords;
+      });
+    }
+  }
+  
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateMarkers();
+  }
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isSideMenuClosed = true;
   int? selectedCarIndex; // Track which car is selected
   String currAddress = '';
   String homeAddress = '';
   String workAddress = '';
+  late LatLng _currentCoordinates;
+  late LatLng _destinationCoordinates;
+  // String currentAddress = '';
+  String destinationAddress = '';
 
   final Completer<GoogleMapController> _controllerGoogleMap =
       Completer<GoogleMapController>();
@@ -40,7 +106,58 @@ class _HomeScreenState extends State<HomeScreen> {
   double previousLatitude = 0.0;
   double previousLongitude = 0.0;
 
+  // Define polylines
+  Map<PolylineId, Polyline> polylines = {};
+
+  // Define markers
+  Set<Marker> markers = {};
+
+  void _updateDestination(LatLng destination) async {
+      // Set destination coordinates
+        setState(() {
+          _destinationCoordinates = destination;
+        });
+
+        // Reverse geocode destination coordinates to address
+        String? address = await _reverseGeocodeCoordinates(destination);
+        if (address != null) {
+          setState(() {
+            destinationAddress = address;
+          });
+        }
+    }
+
   // Function to check and request location permissions
+ 
+
+// Function to perform geocoding (address to coordinates)
+  Future<LatLng?> _geocodeAddress(String address) async {
+    try {
+      List<geocoding.Location> locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        return LatLng(locations.first.latitude, locations.first.longitude);
+      }
+    } catch (e) {
+      print('Geocoding failed: $e');
+    }
+    return null;
+  }
+
+  // Function to perform reverse geocoding (coordinates to address)
+  Future<String?> _reverseGeocodeCoordinates(LatLng coordinates) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          coordinates.latitude, coordinates.longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        return '${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}';
+      }
+    } catch (e) {
+      print('Reverse geocoding failed: $e');
+    }
+    return null;
+  }
+
   Future<void> _checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -67,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Position position = await Geolocator.getCurrentPosition(
         // desiredAccuracy: LocationAccuracy.high,
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: geolocator.LocationAccuracy.high,
         ),
       );
 
@@ -106,11 +223,73 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  static const LatLng _pGooglePlex = LatLng(37.42796133580664, -122.085749655962);
+  // Function to set the initial location of the map  
+  late LatLng _pGooglePlex;
+
+  // Function to set the initial location of the map
+
+  Future<void> _setInitialLocation() async {
+    await _checkLocationPermission();
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: LocationSettings(
+          accuracy: geolocator.LocationAccuracy.high,
+        ),
+      );
+      setState(() {
+        _pGooglePlex = LatLng(position.latitude, position.longitude);
+      });
+    } catch (e) {
+      print(e); // Handle error, e.g., permission denied
+    }
+  }
+
+  static const LatLng _kGooglePlex =
+      LatLng(37.4220, -122.0841); // Googleplex coordinates
 
   // Variables to track button position
   double buttonX = 295; // Initial horizontal position
   double buttonY = 600; // Initial vertical position
+  Future<BitmapDescriptor> _loadCustomMarkerIcon() async {
+    return await BitmapDescriptor.asset(
+      ImageConfiguration(size: Size(48, 48)), // Specify the size of the icon
+      'assets/car.png', // Path to your custom icon in assets
+    );
+  }
+
+  // Function to show available cars on the map
+  void _showAvailableCarsOnMap() async {
+    Set<Marker> carMarkers = {};
+
+    // Example list of available cars with their positions
+    List<LatLng> carPositions = [
+      const LatLng(37.428, -122.085),
+      const LatLng(37.429, -122.086),
+      const LatLng(37.430, -122.087),
+    ];
+    List<String> carTitles = [
+      'Car 1',
+      'Car 2',
+      'Car 3',
+    ];
+    for (LatLng position in carPositions) {
+      carMarkers.add(
+        Marker(
+          markerId: MarkerId(position.toString()),
+          position: position,
+          icon: await _loadCustomMarkerIcon(), // Load the custom car icon
+          infoWindow:
+              InfoWindow(title: carTitles[carPositions.indexOf(position)]),
+          // infoWindow: const InfoWindow(title: 'Available Car'),
+        ),
+      );
+    }
+
+    setState(() {
+      // Add car markers to the map
+      markers.addAll(carMarkers);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,29 +298,55 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           mapKey.isNotEmpty
-              ?  Padding(
-                padding: const EdgeInsets.only(top: 90 , bottom: 160 , left: 20 , right: 20),
-                child: GoogleMap(
-                    mapType: MapType.normal,
-                    myLocationButtonEnabled: true,
-                    initialCameraPosition: const CameraPosition(
-                      target: _pGooglePlex,
-                      zoom: 13,
-                    ),
-                    //for user's current loc
-                    myLocationEnabled: true,
-                      zoomGesturesEnabled: true,
-                    zoomControlsEnabled: true,
-                
+              ? Padding(
+                  padding: const EdgeInsets.only(
+                      top: 90, bottom: 160, left: 20, right: 20),
+                  child: GoogleMap(
                     onMapCreated: (GoogleMapController controller) {
                       _controllerGoogleMap.complete(controller);
                       newGoogleMapController = controller;
-                
-                      //for user's current loc
                       locatePosition();
+                      // Add available cars to the map
+                      _showAvailableCarsOnMap();
+                    },
+                    polylines: Set<Polyline>.of(polylines.values),
+                    mapType: MapType.normal,
+                    myLocationButtonEnabled: true,
+                    // markers: markers,
+                    markers: {
+                      // if (currentPosition != null)
+                      Marker(
+                        markerId: const MarkerId('currentLocation'),
+                        position: _pGooglePlex,
+                        infoWindow: const InfoWindow(title: 'Current Location'),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueBlue),
+                      ),
+                      Marker(
+                        markerId: const MarkerId('destinationLocation'),
+                        position: _kGooglePlex,
+                        infoWindow:
+                            const InfoWindow(title: "destination Location"),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueRed),
+                      ),
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: currAddress.isNotEmpty
+                          ? LatLng(currentPosition.latitude, currentPosition.longitude)
+                          : _pGooglePlex,
+                      zoom: 15,
+                    ),
+                    //for user's current loc
+                    myLocationEnabled: true,
+                    zoomGesturesEnabled: true,
+                    zoomControlsEnabled: true,
+                    onTap: (LatLng tappedLocation) {
+                      // Update the current or destination location based on user tap
+                      _updateDestination(tappedLocation); // For example, update destination
                     },
                   ),
-              )
+                )
               : const Center(
                   child: Text('Google Maps is disabled'),
                 ),
@@ -324,6 +529,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                           context, 'work');
                                     },
                                   ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on),
+                                    title: const Text('Current Address'),
+                                    subtitle: Text(currAddress.isNotEmpty
+                                        ? currAddress
+                                        : 'Your current location address'),
+                                    onTap: () {
+                                      _showAddressOptionsDialog(
+                                          context, 'current');
+                                    },
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on),
+                                    title: const Text('Destination Address'),
+                                    subtitle: Text(destinationAddress.isNotEmpty
+                                        ? destinationAddress
+                                        : 'Your destination address'),
+                                    onTap: () {
+                                      _showAddressOptionsDialog(
+                                          context, 'destination');
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -429,4 +658,49 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
+  void _updateMarkers() {
+    setState(() async {
+      markers.clear();
+      markers.add(
+        Marker(
+          markerId: const MarkerId('homeLocation'),
+          position: _homeCoordinates,
+          infoWindow: InfoWindow(title: 'Home: $homeAddress'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        ),
+      );
+      markers.add(
+        Marker(
+          markerId: const MarkerId('workLocation'),
+          position: _workCoordinates,
+          infoWindow: InfoWindow(title: 'Work: $workAddress'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+        ),
+      );
+      markers.add(
+        Marker(
+          markerId: const MarkerId('currentLocation'),
+          position: _currentCoordinates,
+          infoWindow: InfoWindow(title: 'Current: $currAddress'),
+          icon: await BitmapDescriptor.asset(
+            const ImageConfiguration(size: Size(48, 48)),
+            'assets/images/pickicon.png',
+          ),
+        ),
+      );
+      markers.add(
+        Marker(
+          markerId: const MarkerId('destinationLocation'),
+          position: _destinationCoordinates,
+          infoWindow: InfoWindow(title: 'Destination: $destinationAddress'),
+          icon: await BitmapDescriptor.asset(
+            const ImageConfiguration(size: Size(48, 48)),
+            'assets/images/desticon.png',
+          ),
+        ),
+      );
+    });
+  }
+
 }
