@@ -11,6 +11,8 @@ import 'package:gomatch/screens/settings_screen.dart';
 import 'package:gomatch/screens/signup_screen.dart';
 import 'package:gomatch/utils/firebase_ref.dart';
 import 'package:provider/provider.dart'; // Import usersRef from firebase_ref.dart
+import 'package:gomatch/screens/verification_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context)=> AppData(),
+      create: (context) => AppData(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Go-Match',
@@ -33,16 +35,33 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        initialRoute: HomeScreen.idScreen,
+        // Use StreamBuilder to check authentication status and set initial route accordingly
+        home: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(), // Listen to auth state changes
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show a loading indicator while checking the auth state
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasData) {
+              // User is logged in, navigate to HomeScreen
+              return HomeScreen();
+            } else {
+              // User is not logged in, navigate to LoginScreen
+              return LoginScreen();
+            }
+          },
+        ),
         routes: {
           LoginScreen.idScreen: (context) => LoginScreen(),
           SignupScreen.idScreen: (context) => SignupScreen(),
+          VerificationScreen.idScreen: (context) => VerificationScreen(),
           HomeScreen.idScreen: (context) => HomeScreen(),
-          DriverModeScreen.idScreen: (context) => const DriverModeScreen(),
+          DriverModeScreen.idScreen: (context) => DriverModeScreen(),
           FAQScreen.idScreen: (context) => const FAQScreen(),
           HistoryScreen.idScreen: (context) => const HistoryScreen(),
           SettingsScreen.idScreen: (context) => const SettingsScreen(),
-          ProfileScreen.idScreen: (context) => const ProfileScreen(),
+          ProfileScreen.idScreen: (context) => ProfileScreen(),
         },
       ),
     );

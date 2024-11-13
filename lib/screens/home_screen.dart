@@ -25,36 +25,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late LatLng _homeCoordinates;
-  late LatLng _workCoordinates;
+    
+    late LatLng _homeCoordinates;
+    late LatLng _workCoordinates;
+    late LatLng _pGooglePlex = LatLng(0.0, 0.0);  //user location
+    static const LatLng _kGooglePlex =
+          LatLng(37.4220, -122.0841); // Googleplex coordinates
 
-  // Function to add home and work markers to the map
-  void _addHomeAndWorkMarkers() async {
-    setState(() async {
-      markers.add(
-        Marker(
-          markerId: const MarkerId('homeLocation'),
-          position: _homeCoordinates,
-          infoWindow: InfoWindow(title: 'Home Location'),
-          // icon: await BitmapDescriptor.asset(
-          //   const ImageConfiguration(size: Size(48, 48)),
-          //   'assets/home_marker.png',
-          // ),
-        ),
-      );
-      markers.add(
-        Marker(
-          markerId: const MarkerId('workLocation'),
-          position: _workCoordinates,
-          infoWindow: InfoWindow(title: 'Work Location'),
-          // icon: await BitmapDescriptor.asset(
-          //   const ImageConfiguration(size: Size(48, 48)),
-          //   'assets/work_marker.png',
-          // ),
-        ),
-      );
-    });
-  }
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+      bool isSideMenuClosed = true;
+      int? selectedCarIndex; // Track which car is selected
+      String currAddress = '';
+      String homeAddress = '';
+      String workAddress = '';
+      late LatLng _currentCoordinates;
+      late LatLng _destinationCoordinates;
+      // String currentAddress = '';
+      String destinationAddress = '';
+
+      final Completer<GoogleMapController> _controllerGoogleMap =
+          Completer<GoogleMapController>();
+      late GoogleMapController newGoogleMapController;
+
+      //For getting user's current location
+      late Position currentPosition;
+
+      // Variables to track user's previous location (for distance threshold)
+      double previousLatitude = 0.0;
+      double previousLongitude = 0.0;
+
+      // Define polylines
+      Map<PolylineId, Polyline> polylines = {};
+      List<LatLng> polylineCoordinates = [];
+      int selectedRouteIndex = 0;
+
+      // Define markers
+      Set<Marker> markers = {};
+
+
+      // Variables to track button position
+      double buttonX = 295; // Initial horizontal position
+      double buttonY = 600; // Initial vertical position
 
   @override
   void initState() {
@@ -62,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Initialize addresses
     homeAddress = '123 Home St, Hometown';
     workAddress = '456 Work Ave, Worktown';
+    locatePosition();
     _setInitialLocation();
     _initializeHomeAndWorkCoordinates();
   }
@@ -84,34 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _updateMarkers();
   }
   
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool isSideMenuClosed = true;
-  int? selectedCarIndex; // Track which car is selected
-  String currAddress = '';
-  String homeAddress = '';
-  String workAddress = '';
-  late LatLng _currentCoordinates;
-  late LatLng _destinationCoordinates;
-  // String currentAddress = '';
-  String destinationAddress = '';
-
-  final Completer<GoogleMapController> _controllerGoogleMap =
-      Completer<GoogleMapController>();
-  late GoogleMapController newGoogleMapController;
-
-  //For getting user's current location
-  late Position currentPosition;
-
-  // Variables to track user's previous location (for distance threshold)
-  double previousLatitude = 0.0;
-  double previousLongitude = 0.0;
-
-  // Define polylines
-  Map<PolylineId, Polyline> polylines = {};
-
-  // Define markers
-  Set<Marker> markers = {};
-
   void _updateDestination(LatLng destination) async {
       // Set destination coordinates
         setState(() {
@@ -143,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return null;
   }
 
-  // Function to perform reverse geocoding (coordinates to address)
+// Function to perform reverse geocoding (coordinates to address)
   Future<String?> _reverseGeocodeCoordinates(LatLng coordinates) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -223,9 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Function to set the initial location of the map  
-  late LatLng _pGooglePlex;
-
   // Function to set the initial location of the map
 
   Future<void> _setInitialLocation() async {
@@ -244,12 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  static const LatLng _kGooglePlex =
-      LatLng(37.4220, -122.0841); // Googleplex coordinates
-
-  // Variables to track button position
-  double buttonX = 295; // Initial horizontal position
-  double buttonY = 600; // Initial vertical position
   Future<BitmapDescriptor> _loadCustomMarkerIcon() async {
     return await BitmapDescriptor.asset(
       ImageConfiguration(size: Size(48, 48)), // Specify the size of the icon
@@ -291,6 +266,38 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Function to get routes between pickup and destination
+  Future<void> _getRoutes(LatLng pickup, LatLng destination) async {
+    try {
+      // Example API call to get routes (replace with actual API call)
+      // List<List<LatLng>> routes = await AssistantMethods.getRoutes(pickup, destination);
+
+      // setState(() {
+      //   polylines.clear();
+      //   for (int i = 0; i < routes.length; i++) {
+      //     PolylineId id = PolylineId('route_$i');
+      //     Polyline polyline = Polyline(
+      //       polylineId: id,
+      //       color: i == selectedRouteIndex ? Colors.blue : Colors.grey,
+      //       points: routes[i],
+      //       width: 5,
+      //     );
+      //     polylines[id] = polyline;
+      //   }
+      // });
+    } catch (e) {
+      print('Error fetching routes: $e');
+    }
+  }
+
+  // Function to update selected route
+  void _updateSelectedRoute(int index) {
+    setState(() {
+      selectedRouteIndex = index;
+      _getRoutes(_currentCoordinates, _destinationCoordinates);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -312,38 +319,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     polylines: Set<Polyline>.of(polylines.values),
                     mapType: MapType.normal,
                     myLocationButtonEnabled: true,
-                    // markers: markers,
-                    markers: {
-                      // if (currentPosition != null)
-                      Marker(
-                        markerId: const MarkerId('currentLocation'),
-                        position: _pGooglePlex,
-                        infoWindow: const InfoWindow(title: 'Current Location'),
-                        icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueBlue),
-                      ),
-                      Marker(
-                        markerId: const MarkerId('destinationLocation'),
-                        position: _kGooglePlex,
-                        infoWindow:
-                            const InfoWindow(title: "destination Location"),
-                        icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueRed),
-                      ),
-                    },
+                    markers: markers,
                     initialCameraPosition: CameraPosition(
                       target: currAddress.isNotEmpty
                           ? LatLng(currentPosition.latitude, currentPosition.longitude)
                           : _pGooglePlex,
                       zoom: 15,
                     ),
-                    //for user's current loc
                     myLocationEnabled: true,
                     zoomGesturesEnabled: true,
                     zoomControlsEnabled: true,
                     onTap: (LatLng tappedLocation) {
                       // Update the current or destination location based on user tap
-                      _updateDestination(tappedLocation); // For example, update destination
+                      // _updateDestination(tappedLocation); // For example, update destination
                     },
                   ),
                 )
@@ -404,6 +392,25 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+
+          // Route selection buttons
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(polylines.length, (index) {
+                return ElevatedButton(
+                  onPressed: () => _updateSelectedRoute(index),
+                  child: Text('Route ${index + 1}'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: index == selectedRouteIndex ? Colors.blue : Colors.grey,
+                  ),
+                );
+              }),
+            ),
+          ),
         ],
       ),
     );
@@ -420,13 +427,10 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            bool showCarDetails = false; // Toggler for switching views
-
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                Navigator.of(context)
-                    .pop(); // Close bottom sheet on outside tap
+                Navigator.of(context).pop(); // Close bottom sheet on outside tap
               },
               child: Stack(
                 children: [
@@ -464,47 +468,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 10),
 
-                                  // Initial View: Search bar and Add Home/Work options
-                                  GestureDetector(
-                                    onTap: () {
-                                      setModalState(() {
-                                        // Toggle to show car details
-                                        showCarDetails = true;
-                                      });
-                                    },
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SearchScreen()));
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12.0,
-                                          horizontal: 16.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        child: const Row(
-                                          children: [
-                                            Icon(Icons.search),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'Search Drop Off',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-
                                   // Add Home and Add Work options
                                   ListTile(
                                     leading: const Icon(Icons.home),
@@ -527,30 +490,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onTap: () {
                                       _showAddressOptionsDialog(
                                           context, 'work');
-                                    },
-                                  ),
-                                  const Divider(),
-                                  ListTile(
-                                    leading: const Icon(Icons.location_on),
-                                    title: const Text('Current Address'),
-                                    subtitle: Text(currAddress.isNotEmpty
-                                        ? currAddress
-                                        : 'Your current location address'),
-                                    onTap: () {
-                                      _showAddressOptionsDialog(
-                                          context, 'current');
-                                    },
-                                  ),
-                                  const Divider(),
-                                  ListTile(
-                                    leading: const Icon(Icons.location_on),
-                                    title: const Text('Destination Address'),
-                                    subtitle: Text(destinationAddress.isNotEmpty
-                                        ? destinationAddress
-                                        : 'Your destination address'),
-                                    onTap: () {
-                                      _showAddressOptionsDialog(
-                                          context, 'destination');
                                     },
                                   ),
                                 ],
@@ -659,8 +598,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _updateMarkers() {
-    setState(() async {
+  void _updateMarkers() async {
+    BitmapDescriptor currentIcon = await BitmapDescriptor.asset(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/images/pickicon.png',
+    );
+    BitmapDescriptor destinationIcon = await BitmapDescriptor.asset(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/images/desticon.png',
+    );
+
+    setState(() {
       markers.clear();
       markers.add(
         Marker(
@@ -683,10 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
           markerId: const MarkerId('currentLocation'),
           position: _currentCoordinates,
           infoWindow: InfoWindow(title: 'Current: $currAddress'),
-          icon: await BitmapDescriptor.asset(
-            const ImageConfiguration(size: Size(48, 48)),
-            'assets/images/pickicon.png',
-          ),
+          icon: currentIcon,
         ),
       );
       markers.add(
@@ -694,10 +639,7 @@ class _HomeScreenState extends State<HomeScreen> {
           markerId: const MarkerId('destinationLocation'),
           position: _destinationCoordinates,
           infoWindow: InfoWindow(title: 'Destination: $destinationAddress'),
-          icon: await BitmapDescriptor.asset(
-            const ImageConfiguration(size: Size(48, 48)),
-            'assets/images/desticon.png',
-          ),
+          icon: destinationIcon,
         ),
       );
     });

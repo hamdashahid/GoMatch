@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'package:gomatch/screens/signup_screen.dart';
 import 'package:gomatch/providers/login_service.dart'; // Import the login service
-
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:gomatch/screens/home_screen.dart'; // Import HomeScreen
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
   static const String idScreen = "LogIn";
@@ -123,6 +124,15 @@ class LoginScreen extends StatelessWidget {
   void loginAndAuthenticateUser(BuildContext context) async {
     String email = emailTextEditingController.text.trim();
     String password = passwordTextEditingController.text.trim();
-    await loginUser(context, email, password);  // Call login function
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Navigate to HomeScreen after successful login
+      Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
+    } catch (e) {
+      displayToastMessage("Login failed: Account is not registered!!", context);
+    }
   }
 }

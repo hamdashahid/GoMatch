@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "696476026384",
-    "project_id": "gomatch-43bca",
-    "storage_bucket": "gomatch-43bca.appspot.com"
+    "project_number": "949375817365",
+    "project_id": "maps-e592c",
+    "storage_bucket": "maps-e592c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:696476026384:android:3d1cc4364d6c8ae828ac95",
+        "mobilesdk_app_id": "1:949375817365:android:0756be4525c307404aad9c",
         "android_client_info": {
           "package_name": "com.ridesharing.gomatch"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAq0xGrHbNMO749u_RwruDV1V6fxUU_zCY"
+          "current_key": "AIzaSyBOTsr2dbuLq3s28_8Dvfh1QXZulQLhIWA"
         }
       ],
       "services": {

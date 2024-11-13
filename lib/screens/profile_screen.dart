@@ -1,208 +1,141 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:gomatch/components/profile_screen/dob_bottom_sheet.dart';
-import 'package:gomatch/components/profile_screen/email_bottom_sheet.dart';
-import 'package:gomatch/components/profile_screen/gender_selection_bottom_sheet.dart';
-import 'package:gomatch/components/profile_screen/name_bottom_sheet.dart';
-import 'package:gomatch/components/profile_screen/phone_bottom_sheet.dart';
-import 'package:gomatch/components/profile_screen/profile_tile.dart';
 import 'package:gomatch/utils/colors.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
-  static const String idScreen = "Profile";
+  static const String idScreen = "profile";
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String? selectedGender = 'Unspecified';
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  User? user;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    user = _auth.currentUser;
+    if (user != null) {
+      fetchUserData();
+    } else {
+      // Navigate to login if user is not logged in
+      Navigator.pushReplacementNamed(context, 'loginScreen');
+    }
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user?.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          nameController.text = userDoc['name'] ?? '';
+          phoneController.text = userDoc['phone'] ?? '';
+          emailController.text = userDoc['email'] ?? user?.email ?? '';
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching user data: $e")),
+      );
+    }
+  }
+
+  Future<void> saveProfileData() async {
+    if (user == null) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user!.uid).get();
+      if (userDoc.exists) {
+        String savedEmail = userDoc['email'] ?? '';
+        if (savedEmail == emailController.text) {
+          await _firestore.collection('users').doc(user!.uid).set({
+            'name': nameController.text,
+            'phone': phoneController.text,
+            'email': emailController.text,
+          }, SetOptions(merge: true)); // Only update specified fields
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Profile updated successfully!")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Email does not match the saved data.")),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update profile: $e")),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text("Edit Profile"),
         backgroundColor: AppColors.primaryColor,
-        elevation: 0,
-        iconTheme:
-            const IconThemeData(color: Colors.white), // Back button color
-        titleTextStyle: const TextStyle(
-            color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        foregroundColor: Colors.white,
+        centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-        children: [
-          ProfileTile(
-            icon: Icons.account_box,
-            title: 'Name',
-            subtitle: 'Name',
-            onTap: () {
-              // Action when tile is clicked
-              _openNameBottomSheet(context);
-            },
-          ),
-          ProfileTile(
-            icon: Icons.phone,
-            title: 'Phone number',
-            subtitle: '923038018095',
-            onTap: () {
-              // Action when tile is clicked
-              _openPhoneNumberBottomSheet(context);
-            },
-          ),
-          ProfileTile(
-            icon: Icons.email,
-            title: 'Email',
-            subtitle: 'abc@gmail.com',
-            onTap: () {
-              // Action when tile is clicked
-              _openEmailBottomSheet(context);
-            },
-          ),
-          ProfileTile(
-            icon: Icons.person,
-            title: 'Gender',
-            subtitle: selectedGender!,
-            onTap: () {
-              // Open bottom sheet for gender selection
-              _openGenderSelectionBottomSheet(context);
-            },
-          ),
-          ProfileTile(
-            icon: Icons.calendar_today,
-            title: 'Date of birth',
-            subtitle: '',
-            onTap: () {
-              // Action when tile is clicked
-              _openDOBSelectionBottomSheet(context);
-            },
-          ),
-        ],
-      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: "Name"),
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: phoneController,
+                    decoration: InputDecoration(labelText: "Phone Number"),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: "Email"),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: saveProfileData,
+                    child: Text("Save Changes"),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
-  void _openGenderSelectionBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
-      backgroundColor: AppColors.primaryColor,
-      builder: (BuildContext context) {
-        return GenderSelectionBottomSheet(
-          selectedGender: selectedGender,
-          onGenderSelected: (newGender) {
-            setState(() {
-              selectedGender = newGender;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  void _openNameBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled:
-          true, // This allows the bottom sheet to move when the keyboard appears
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
-      backgroundColor: AppColors.primaryColor,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Adjust bottom padding for keyboard
-          ),
-          child: NameBottomSheet(
-            currentName: 'Name', // Pass current name
-            onNameSelected: (newName) {
-              // Handle name change
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _openPhoneNumberBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled:
-          true, // Enables scrolling to move up when keyboard appears
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
-      backgroundColor: AppColors.primaryColor,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Adjust bottom padding for keyboard
-          ),
-          child: PhoneNumberBottomSheet(
-            currentPhoneNumber: '923038018095', // Pass current phone number
-            onPhoneNumberSelected: (newPhone) {
-              // Handle phone number change
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _openEmailBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled:
-          true, // This allows the bottom sheet to move when the keyboard appears
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
-      backgroundColor: AppColors.primaryColor,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Adjust bottom padding when keyboard is open
-          ),
-          child: EmailBottomSheet(
-            currentEmail: 'abc@gmail.com', // Pass current email
-            onEmailSelected: (newEmail) {
-              setState(() {
-                // Update the email here
-              });
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _openDOBSelectionBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
-      backgroundColor: AppColors.primaryColor,
-      builder: (BuildContext context) {
-        return DOBSelectionBottomSheet(
-          currentDOB: DateTime(1995, 1, 1), // Pass current date of birth
-          onDOBSelected: (newDOB) {
-            setState(() {
-              // Update the date of birth here
-            });
-          },
-        );
-      },
-    );
+  @override
+  void dispose() {
+    // Dispose controllers to free resources
+    nameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    super.dispose();
   }
 }
