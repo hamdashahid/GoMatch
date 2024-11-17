@@ -263,17 +263,17 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void findPlace(String placeName) async {
-    print("findPlace called with: $placeName"); // Debugging line
+    // print("findPlace called with: $placeName"); // Debugging line
 
-    if (placeName.length > 1) {
-      String autoCompleteUrl =
-          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$mapKey&sessiontoken=1234567890&components=country:pk";
-      var res = await Requestassistant.getRequest(autoCompleteUrl);
-      if (res == "failed") {
-        return;
-      }
-      print("Places Predictions Response :: ");
-      print(res);
-    }
+    // if (placeName.length > 1) {
+    //   String autoCompleteUrl =
+    //       "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$mapKey&sessiontoken=1234567890&components=country:pk";
+    //   var res = await Requestassistant.getRequest(autoCompleteUrl);
+    //   if (res == "failed") {
+    //     return;
+    //   }
+    //   print("Places Predictions Response :: ");
+    //   print(res);
+    // }
   }
 }

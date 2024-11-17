@@ -35,12 +35,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchUserData() async {
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user?.uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('Profile').doc(user?.uid).get();
       if (userDoc.exists) {
         setState(() {
-          nameController.text = userDoc['name'] ?? '';
-          phoneController.text = userDoc['phone'] ?? '';
-          emailController.text = userDoc['email'] ?? user?.email ?? '';
+          nameController.text = userDoc['Name'] ?? '';
+          phoneController.text = userDoc['Phone'] ?? '';
+          emailController.text = userDoc['Email'] ?? user?.email ?? '';
         });
       }
     } catch (e) {
@@ -58,14 +58,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user!.uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('Profile').doc(user!.uid).get();
       if (userDoc.exists) {
-        String savedEmail = userDoc['email'] ?? '';
+        String savedEmail = userDoc['Email'] ?? '';
         if (savedEmail == emailController.text) {
-          await _firestore.collection('users').doc(user!.uid).set({
-            'name': nameController.text,
-            'phone': phoneController.text,
-            'email': emailController.text,
+          await _firestore.collection('Profile').doc(user!.uid).set({
+            'Name': nameController.text,
+            'Phone': phoneController.text,
+            'Email': emailController.text,
           }, SetOptions(merge: true)); // Only update specified fields
 
           ScaffoldMessenger.of(context).showSnackBar(

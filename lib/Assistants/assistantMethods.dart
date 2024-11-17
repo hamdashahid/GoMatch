@@ -30,44 +30,45 @@ class AssistantMethods {
 
   // Geocoding method
   static Future<String> searchCoordinateAddress(Position position, context) async {
-    String placeAddress = "";
-    String st1, st2, st3, st4, st5, st6, st7;
-    String url =
-        "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
+    // String placeAddress = "";
+    // String st1, st2, st3, st4, st5, st6, st7;
+    // // String url =
+    // //     "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
 
-    var response = await Requestassistant.getRequest(url);
+    // var response = await Requestassistant.getRequest(url);
 
-    // Log the full response for debugging
-    print("Geocoding API Response: $response");
+    // // Log the full response for debugging
+    // print("Geocoding API Response: $response");
 
-    if (response != "Failed, No Response." && response != null) {
-      if (response["results"] != null && response["results"].length > 0) {
-        st1 = response["results"][0]["address_components"][0]["long_name"];
-        st2 = response["results"][0]["address_components"][1]["long_name"];
-        st3 = response["results"][0]["address_components"][2]["long_name"];
-        st4 = response["results"][0]["address_components"][3]["long_name"];
-        st5 = response["results"][0]["address_components"][4]["long_name"];
-        st6 = response["results"][0]["address_components"][5]["long_name"];
-        st7 = response["results"][0]["address_components"][6]["long_name"];
-        placeAddress = "$st1, $st2, $st3, $st4, $st5, $st6, $st7";
+    // if (response != "Failed, No Response." && response != null) {
+    //   if (response["results"] != null && response["results"].length > 0) {
+    //     st1 = response["results"][0]["address_components"][0]["long_name"];
+    //     st2 = response["results"][0]["address_components"][1]["long_name"];
+    //     st3 = response["results"][0]["address_components"][2]["long_name"];
+    //     st4 = response["results"][0]["address_components"][3]["long_name"];
+    //     st5 = response["results"][0]["address_components"][4]["long_name"];
+    //     st6 = response["results"][0]["address_components"][5]["long_name"];
+    //     st7 = response["results"][0]["address_components"][6]["long_name"];
+    //     placeAddress = "$st1, $st2, $st3, $st4, $st5, $st6, $st7";
 
-        Address userPickupAddress = Address(
-          placeFormattedAddress: "",
-          placeName: placeAddress,
-          placeId: "",
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
+    //     Address userPickupAddress = Address(
+    //       placeFormattedAddress: "",
+    //       placeName: placeAddress,
+    //       placeId: "",
+    //       latitude: position.latitude,
+    //       longitude: position.longitude,
+    //     );
 
-        Provider.of<AppData>(context, listen: false)
-            .updatePickUpLocationAddress(userPickupAddress);
-      } else {
-        return "No address found.";
-      }
-    } else {
-      return "Failed to retrieve address.";
-    }
+    //     Provider.of<AppData>(context, listen: false)
+    //         .updatePickUpLocationAddress(userPickupAddress);
+    //   } else {
+    //     return "No address found.";
+    //   }
+    // } else {
+    //   return "Failed to retrieve address.";
+    // }
 
-    return placeAddress;
+    // return placeAddress;
+    return "Address";
   }
 }

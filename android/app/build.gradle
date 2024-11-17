@@ -10,8 +10,8 @@ plugins {
 
 android {
     namespace = "com.ridesharing.gomatch"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "25.1.8937393"
+    compileSdk = 35
+    ndkVersion = "26.1.10909125"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -28,10 +28,10 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdkVersion 23
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -39,8 +39,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
@@ -52,6 +52,8 @@ flutter {
 
 dependencies {
     // Import the Firebase BoM
+    // implementation 'com.mapbox.maps:android:10.13.1'
+    // implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation:0.42.6'
     implementation platform('com.google.firebase:firebase-bom:33.4.0')
 
     // Add Firebase dependencies based on the services you plan to use
