@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:gomatch/Assistants/requestAssistant.dart';
 import 'package:gomatch/configMaps.dart';
 import 'package:gomatch/providers/appData.dart';
 import 'package:provider/provider.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'car_card.dart'; // Assuming CarCard is a widget located here.
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialDropOffLocation;
   const SearchScreen({Key? key, this.initialDropOffLocation}) : super(key: key);
+
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
@@ -18,16 +21,14 @@ class _SearchScreenState extends State<SearchScreen> {
   TextEditingController dropOffTextEditingController = TextEditingController();
   FocusNode dropOffFocusNode = FocusNode(); // Add this line
 
-  // State variable for selected car
   int? selectedCarIndex;
+
   @override
   void initState() {
     super.initState();
-    // Set the drop-off text field with the passed location
     if (widget.initialDropOffLocation != null) {
       dropOffTextEditingController.text = widget.initialDropOffLocation!;
     }
-    // Request focus on the drop-off TextField
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(dropOffFocusNode);
     });
@@ -35,7 +36,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
-    dropOffFocusNode.dispose(); // Dispose the FocusNode when the widget is disposed
+    dropOffFocusNode.dispose();
     super.dispose();
   }
 
@@ -48,7 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // The top search section (Pick-up & Drop-off locations)
+          // Top Search Section (Pick-up & Drop-off locations)
           Container(
             height: 215.0,
             decoration: const BoxDecoration(
@@ -146,11 +147,10 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: TextField(
                               onChanged: (val) {
                                 print("TextField changed with value: $val");
-
                                 findPlace(val);
                               },
                               controller: dropOffTextEditingController,
-                              focusNode: dropOffFocusNode, //focus line
+                              focusNode: dropOffFocusNode,
                               decoration: const InputDecoration(
                                 hintText: "Where to?",
                                 fillColor: Colors.white60,
@@ -174,7 +174,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           const SizedBox(height: 20),
-
           // Car Details Section
           Expanded(
             child: Padding(
@@ -204,13 +203,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // Dropdowns for Pickup Location and Destination
-
                   const Divider(color: AppColors.primaryColor),
-
                   // Display available cars
-
                   Expanded(
                     child: ListView(
                       children: [
@@ -253,6 +247,39 @@ class _SearchScreenState extends State<SearchScreen> {
                       ],
                     ),
                   ),
+                  // Button to navigate to the MapPage
+                  ElevatedButton(
+                    onPressed: () {
+                      String pickupLocation = pickUpTextEditingController.text;
+                      String dropOffLocation =
+                          dropOffTextEditingController.text;
+
+                      // Send pickup and drop-off locations to the MapPage
+                      convertToGeoPoint(pickupLocation).then((pickupGeoPoint) {
+                        convertToGeoPoint(dropOffLocation).then(
+                          (dropOffGeoPoint) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MapPage(
+                                  pickupLocation: pickupGeoPoint,
+                                  destinationLocation: dropOffGeoPoint,
+                                ),
+                              ),
+                            );
+
+                          },
+                        ).catchError((error) {
+                          // Handle error for drop-off location conversion
+                          print("Error converting drop-off location: $error");
+                        });
+                      }).catchError((error) {
+                        // Handle error for pickup location conversion
+                        print("Error converting pickup location: $error");
+                      });
+                    },
+                    child: const Text("Set Locations"),
+                  ),
                 ],
               ),
             ),
@@ -262,18 +289,21 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  void findPlace(String placeName) async {
-    // print("findPlace called with: $placeName"); // Debugging line
+  Future<GeoPoint> convertToGeoPoint(String location) async {
+    // Using the geocoding package to convert location string to GeoPoint
+    List<Location> locations = await locationFromAddress(location);
+    if (locations.isNotEmpty) {
+      double latitude = locations[0].latitude;
+      double longitude = locations[0].longitude;
+                                  // print("Pickup Location: $pickupGeoPoint");
+                            print("$latitude, $longitude");
+      return GeoPoint(latitude: latitude, longitude: longitude);
+    } else {
+      throw Exception("Failed to convert location to GeoPoint");
+    }
+  }
 
-    // if (placeName.length > 1) {
-    //   String autoCompleteUrl =
-    //       "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$mapKey&sessiontoken=1234567890&components=country:pk";
-    //   var res = await Requestassistant.getRequest(autoCompleteUrl);
-    //   if (res == "failed") {
-    //     return;
-    //   }
-    //   print("Places Predictions Response :: ");
-    //   print(res);
-    // }
+  void findPlace(String placeName) async {
+    // Your place finding logic here
   }
 }

@@ -1,20 +1,11 @@
-// import 'dart:async';
 import 'package:flutter/material.dart';
-// import 'package:geolocator/geolocator.dart' as geolocator;
-// import 'package:geolocator/geolocator.dart';
-// import 'package:gomatch/Assistants/assistantMethods.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/components/side_drawer/side_menu.dart';
 import 'package:gomatch/models/menu_btn.dart';
-// import 'package:gomatch/providers/appData.dart';
 import 'package:gomatch/utils/colors.dart';
-// import 'package:gomatch/components/home_screen/car_card.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as google_maps;
-// import 'package:provider/provider.dart';
 import 'package:gomatch/configMaps.dart';
-// import 'package:geocoding/geocoding.dart' as geocoding;
-// import 'package:geocoding/geocoding.dart';
-// import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:flutter_osm_interface/flutter_osm_interface.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String idScreen = "HomeScreen";
@@ -52,6 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Define markers
   Set<google_maps.Marker> markers = {};
+  GeoPoint pickupLocation =
+      GeoPoint(latitude: 37.7749, longitude: -122.4194); // Example
+  GeoPoint destinationLocation =
+      GeoPoint(latitude: 37.4220, longitude: -122.0841); // Example
 
   // Variables to track button position
   double buttonX = 295; // Initial horizontal position
@@ -80,26 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(
                 top: 90, bottom: 160, left: 20, right: 20),
-            child: const Center(
-              child:MapPage(),
+            child: Center(
+              child: SizedBox.expand(
+                child: MapPage(),
+              ),
             ),
-            // MapboxMap(
-            //   accessToken: token,
-            //   initialCameraPosition: CameraPosition(
-            //     target: LatLng(currentLat,
-            //         currentLng), // User's location or Johar Town
-            //     zoom: 14,
-            //   ),
-            //   onMapCreated: (controller) {
-            //     // Handle Mapbox map controller here
-            //     newGoogleMapController = controller;
-            //   },
-            // ),
           ),
-          // : const Center(
-          //     child: Text('Google Maps is disabled'),
-          //   ),
-
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.fastOutSlowIn,
@@ -235,6 +216,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                           context, 'work');
                                     },
                                   ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on,
+                                        color: AppColors.secondaryColor),
+                                    title: const Text('Set Pickup and Dropoff'),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SearchScreen(
+                                            initialDropOffLocation:
+                                                'Set Pickup and Dropoff',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -251,6 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+  // Button to set pickup and dropoff locations
 
   void _showAddressOptionsDialog(BuildContext context, String addressType) {
     String address = addressType == 'home' ? 'Home Address' : 'Work Address';
@@ -338,6 +337,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       },
+    );
+  }
+
+  void navigateToMapPage(BuildContext context, double currentLat,
+      double currentLng, double destLat, double destLng) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapPage(
+          pickupLocation: GeoPoint(latitude: currentLat, longitude: currentLng),
+          destinationLocation: GeoPoint(latitude: destLat, longitude: destLng),
+        ),
+      ),
     );
   }
 }
