@@ -1,11 +1,14 @@
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 import 'package:flutter/material.dart';
+import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/providers/appData.dart';
+import 'package:gomatch/screens/driver_dashboard.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
 import 'package:gomatch/screens/faq_screen.dart';
 import 'package:gomatch/screens/history_screen.dart';
 import 'package:gomatch/screens/home_screen.dart';
 import 'package:gomatch/screens/login_screen.dart';
+import 'package:gomatch/screens/payment_screen.dart';
 import 'package:gomatch/screens/profile_screen.dart';
 import 'package:gomatch/screens/settings_screen.dart';
 import 'package:gomatch/screens/signup_screen.dart';
@@ -62,6 +65,9 @@ class MyApp extends StatelessWidget {
           HistoryScreen.idScreen: (context) => const HistoryScreen(),
           SettingsScreen.idScreen: (context) => const SettingsScreen(),
           ProfileScreen.idScreen: (context) => ProfileScreen(),
+          SearchScreen.idScreen: (context) => const SearchScreen(),
+          PaymentScreen.idScreen: (context) => const PaymentScreen(),
+          DashboardScreen.idScreen: (context) => DashboardScreen(),
         },
       ),
     );

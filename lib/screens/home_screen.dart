@@ -17,8 +17,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // late LatLng _homeCoordinates;
-  // late LatLng _workCoordinates;
+  TextEditingController homeaddressController =
+      TextEditingController(text: 'Enter home address');
+  TextEditingController workaddressController =
+      TextEditingController(text: 'Enter work address');
+
   late google_maps.LatLng _pGooglePlex =
       google_maps.LatLng(0.0, 0.0); //user location
   static const google_maps.LatLng _kGooglePlex =
@@ -57,8 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Initialize addresses
-    homeAddress = '123 Home St, Hometown';
-    workAddress = '456 Work Ave, Worktown';
+
     // locatePosition();
     // _setInitialLocation();
     // _initializeHomeAndWorkCoordinates();
@@ -196,9 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ListTile(
                                     leading: const Icon(Icons.home),
                                     title: const Text('Home Address'),
-                                    subtitle: Text(homeAddress.isNotEmpty
-                                        ? homeAddress
-                                        : 'Your living home address'),
+                                    subtitle:
+                                        homeaddressController.text.isNotEmpty
+                                            ? Text(homeaddressController.text)
+                                            : const Text('Your home address'),
                                     onTap: () {
                                       _showAddressOptionsDialog(
                                           context, 'home');
@@ -208,9 +211,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ListTile(
                                     leading: const Icon(Icons.work),
                                     title: const Text('Work Address'),
-                                    subtitle: Text(workAddress.isNotEmpty
-                                        ? workAddress
-                                        : 'Your office address'),
+                                    subtitle:
+                                        workaddressController.text.isNotEmpty
+                                            ? Text(workaddressController.text)
+                                            : const Text('Your work address'),
                                     onTap: () {
                                       _showAddressOptionsDialog(
                                           context, 'work');
@@ -227,7 +231,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         MaterialPageRoute(
                                           builder: (context) => SearchScreen(
                                             initialDropOffLocation:
-                                                'Set Pickup and Dropoff',
+                                                'Set Dropoff',
+                                            homeAddress:
+                                                homeaddressController.text,
+                                            workAddress:
+                                                workaddressController.text,
                                           ),
                                         ),
                                       );
@@ -270,13 +278,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SearchScreen(
-                        initialDropOffLocation:
-                            address, // Pass the address to search screen
+                        initialDropOffLocation: addressType == 'home'
+                            ? homeaddressController.text
+                            : workaddressController.text,
+                        homeAddress: homeaddressController.text,
+                        workAddress: workaddressController.text,
+                        // homeaddressController.text, // Pass the address to search screen
+                        // initialPickupLocation: ,
                       ),
                     ),
                   );
                 },
                 child: const Text('Set Drop-Off Location'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to the search screen and set this address as drop-off location
+                  Navigator.pop(context); // Close the dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchScreen(
+                        initialDropOffLocation: addressType == 'home'
+                            ? homeaddressController.text
+                            : workaddressController.text,
+                        homeAddress: homeaddressController.text,
+                        workAddress: workaddressController.text,
+                        // homeaddressController.text, // Pass the address to search screen
+                        // initialPickupLocation: ,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Set Pickup Location'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -323,10 +357,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   if (addressType == 'home') {
                     // Save the new home address (e.g., to a variable or to persistent storage)
-                    homeAddress = addressController.text;
+                    homeaddressController.text = addressController.text;
                   } else {
                     // Save the new work address
-                    workAddress = addressController.text;
+                    workaddressController.text = addressController.text;
                   }
                 });
 
@@ -352,4 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+
+
 }

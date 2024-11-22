@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gomatch/components/home_screen/search_screen.dart';
+import 'package:gomatch/screens/payment_screen.dart';
 import 'package:gomatch/utils/colors.dart';
 
 class CarCard extends StatelessWidget {
@@ -13,6 +15,8 @@ class CarCard extends StatelessWidget {
   final int? selectedCarIndex;
   final int available;
   final Function(int) onCardTap;
+  final String pickup;
+  final String dropoff;
 
   const CarCard({
     super.key,
@@ -27,6 +31,8 @@ class CarCard extends StatelessWidget {
     required this.selectedCarIndex,
     required this.available,
     required this.onCardTap,
+    required this.pickup,
+    required this.dropoff,
   });
 
   @override
@@ -118,6 +124,7 @@ class CarCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       // Add booking logic
+                      _showCarpoolBottomSheet(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondaryColor,
@@ -135,4 +142,123 @@ class CarCard extends StatelessWidget {
       ),
     );
   }
+
+  // Function to show the bottom sheet of Car Button
+  void _showCarpoolBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                Navigator.of(context)
+                    .pop(); // Close bottom sheet on outside tap
+              },
+              child: Stack(
+                children: [
+                  GestureDetector(
+                    onTap: () {}, // Prevent dismissing when tapping inside
+                    child: DraggableScrollableSheet(
+                      expand: true,
+                      initialChildSize: 0.5,
+                      minChildSize: 0.5,
+                      maxChildSize: 1,
+                      builder: (context, scrollController) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          child: SingleChildScrollView(
+                            controller: scrollController,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Container(
+                                      width: 50,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  // Add Home and Add Work options
+                                  ListTile(
+                                    leading: const Icon(Icons.my_location,color: AppColors.secondaryColor),
+                                    title: const Text('Pickup Location'),
+                                    subtitle:Text(pickup),
+                                    
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_pin,
+                                        color: AppColors.primaryColor),
+                                    title: const Text('Dropoff Location'),
+                                    subtitle: Text(dropoff),
+
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on,
+                                        color: AppColors.secondaryColor),
+                                    title: const Text('Set Pickup and Dropoff'),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SearchScreen(
+                                            initialDropOffLocation:
+                                                'Set Dropoff',
+
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(Icons.payment,
+                                        color: Colors.green),
+                                    title: const Text('Confirm Payment'),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PaymentScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  // Button to set pickup and dropoff locations
+
 }
