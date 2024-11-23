@@ -17,6 +17,7 @@ class SignupService {
     String email,
     String phone,
     String password,
+    bool ispassenger,
   ) async {
     error = null; // Reset error at the start of registration
 
@@ -38,7 +39,8 @@ class SignupService {
 
     try {
       // Attempt to create a new user account
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -46,22 +48,27 @@ class SignupService {
 
       if (user != null) {
         // Save additional user data in Firestore
-        FirebaseFirestore.instance.collection('Profile').doc(user.uid).set({
-          'Name': name,
-          'Phone': phone,
-          'Email': email,
-        });
-
-        // Send email verification
         await user.sendEmailVerification();
+        // Send email verification
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Verification email sent to $email. Please verify your email."),
+            content: Text(
+                "Verification email sent to $email. Please verify your email."),
           ),
         );
 
         // Redirect user to the verification screen after registration
-        Navigator.pushNamed(context, VerificationScreen.idScreen);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerificationScreen(
+                ispassenger: ispassenger,
+                name: name,
+                email: email,
+                phone: phone,
+                password: password),
+          ),
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
@@ -146,22 +153,46 @@ class SignupScreen extends StatelessWidget {
                           emailTextEditingController.text,
                           phoneTextEditingController.text,
                           passwordTextEditingController.text,
+                          true,
                         );
                       },
                       child: const Center(
                         child: Text(
-                          "Create Account",
-                          style: TextStyle(fontSize: 18.0, fontFamily: "Brand Bold"),
+                          "Create Passenger Account",
+                          style: TextStyle(
+                              fontSize: 18.0, fontFamily: "Brand Bold"),
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await SignupService.registerNewUser(
+                          context,
+                          nameTextEditingController.text,
+                          emailTextEditingController.text,
+                          phoneTextEditingController.text,
+                          passwordTextEditingController.text,
+                          false,
+                        );
+                      },
+                      child: const Center(
+                        child: Text(
+                          "Create Driver Account",
+                          style: TextStyle(
+                              fontSize: 18.0, fontFamily: "Brand Bold"),
                         ),
                       ),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.pushNamedAndRemoveUntil(
-                          context, LoginScreen.idScreen, (route) => false,
+                          context,
+                          LoginScreen.idScreen,
+                          (route) => false,
                         );
                       },
-                      style: TextButton.styleFrom(foregroundColor: Colors.white),
+                      style:
+                          TextButton.styleFrom(foregroundColor: Colors.white),
                       child: const Text("Already have an Account? Login Here."),
                     ),
                   ],

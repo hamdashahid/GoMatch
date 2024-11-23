@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:gomatch/screens/driver_dashboard.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:gomatch/components/driver_side_drawer/driver_side_menu.dart';
+import 'package:gomatch/models/driver_menu_btn.dart';
+import 'package:gomatch/utils/colors.dart';
 
 class DriverModeScreen extends StatefulWidget {
   static const String idScreen = "DriverModeScreen";
@@ -15,198 +13,157 @@ class DriverModeScreen extends StatefulWidget {
 }
 
 class _DriverModeScreenState extends State<DriverModeScreen> {
-  bool isVerified = false;
+  bool isSideMenuClosed = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Driver Mode'),
+      key: _scaffoldKey,
+      drawer: AnimatedPositioned(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.fastOutSlowIn,
+        left: isSideMenuClosed ? -288 : 0,
+        height: MediaQuery.of(context).size.height,
+        child: DriverSideMenu(isMenuOpen: !isSideMenuClosed),
       ),
-      body: driverRegistration(),
-    );
-  }
-
-  Widget driverRegistration() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      appBar: AppBar(
+        title: const Text('Driver Mode'),
+        backgroundColor: AppColors.primaryColor,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      body: Stack(
         children: [
-          Text('Upload your documents to register as a driver'),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Implement document upload functionality here
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/145.png',
+              fit: BoxFit.fitHeight,
+            ),
+          ),
 
-              uploadDocument('ID Card');
-            },
-            child: Text('Upload ID Card'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Implement document upload functionality here
-              uploadDocument('Driver’s License');
-            },
-            child: Text('Upload Driver’s License'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Implement document upload functionality here
-              uploadDocument('Profile Photo');
-            },
-            child: Text('Upload Profile Photo'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Implement document upload functionality here
-              uploadDocument('Vehicle Registration');
-            },
-            child: Text('Upload Additional Documents'),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Implement KYC verification functionality here
-              setState(() {
-                isVerified = true;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => DashboardScreen()),
-                );
-              });
-            },
-            child: Text('Submit for Verification'),
+          // Main Content
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Welcome Banner
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 270),
+                      const Text(
+                        'Welcome, Driver!',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Join us at GoMatch and help us connect passengers with safe and reliable rides!',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      // const SizedBox(height: 20),
+                      // Image.asset(
+                      //   'assets/images/taxi.png',
+                      //   height: 200,
+                      //   fit: BoxFit.cover,
+                      // ),
+                    ],
+                  ),
+                ),
+
+                // Features Section
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20.0, right: 20.0, bottom: 20.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Why Join GoMatch?',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      _featureTile(
+                        icon: Icons.access_time_rounded,
+                        title: 'Flexible Hours',
+                        description:
+                            'Drive whenever you want and earn on your own schedule.',
+                      ),
+                      const SizedBox(height: 15),
+                      _featureTile(
+                        icon: Icons.money_rounded,
+                        title: 'Competitive Earnings',
+                        description:
+                            'Keep more of what you earn with our transparent payout system.',
+                      ),
+                      const SizedBox(height: 15),
+                      _featureTile(
+                        icon: Icons.security_rounded,
+                        title: 'Safety First',
+                        description:
+                            'We prioritize safety for both drivers and passengers.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> uploadDocument(String documentType) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      File file = File(pickedFile.path);
-      String fileName =
-          '${documentType}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      try {
-        // Upload file to Firebase Storage
-        await FirebaseStorage.instance.ref('uploads/$fileName').putFile(file);
-        String downloadURL = await FirebaseStorage.instance
-            .ref('uploads/$fileName')
-            .getDownloadURL();
-
-        // Save file info to Firestore
-        await FirebaseFirestore.instance.collection('driver_documents').add({
-          'documentType': documentType,
-          'url': downloadURL,
-          'uploadedAt': Timestamp.now(),
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$documentType uploaded successfully')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload $documentType')));
-      }
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No file selected')));
-    }
-  }
-
-  void driverDashboard() {
-    // return Padding(
-    //   padding: const EdgeInsets.all(16.0),
-    //   child: SingleChildScrollView(
-    //     child: Column(
-    //       crossAxisAlignment: CrossAxisAlignment.stretch,
-    //       children: [
-    //         Text('Driver Dashboard'),
-    //         SizedBox(height: 20),
-    //         Text('Available Routes:'),
-    //         // Implement list of available routes here
-    //         ListView(
-    //           shrinkWrap: true,
-    //           physics: NeverScrollableScrollPhysics(),
-    //           children: [
-    //             ListTile(
-    //               title: Text('Route 1'),
-    //               subtitle: Text('From A to B'),
-    //               onTap: () {
-    //                 // Implement route selection functionality here
-    //               },
-    //             ),
-    //             ListTile(
-    //               title: Text('Route 2'),
-    //               subtitle: Text('From C to D'),
-    //               onTap: () {
-    //                 // Implement route selection functionality here
-    //               },
-    //             ),
-    //             ListTile(
-    //               title: Text('Route 3'),
-    //               subtitle: Text('From E to F'),
-    //               onTap: () {
-    //                 // Implement route selection functionality here
-    //               },
-    //             ),
-    //           ],
-    //         ),
-    //         SizedBox(height: 20),
-    //         Text('Pickup Locations:'),
-    //         // Implement list of pickup locations here
-    //         ListView(
-    //           shrinkWrap: true,
-    //           physics: NeverScrollableScrollPhysics(),
-    //           children: [
-    //             ListTile(
-    //               title: Text('Location 1'),
-    //               subtitle: Text('123 Main St'),
-    //             ),
-    //             ListTile(
-    //               title: Text('Location 2'),
-    //               subtitle: Text('456 Elm St'),
-    //             ),
-    //             ListTile(
-    //               title: Text('Location 3'),
-    //               subtitle: Text('789 Oak St'),
-    //             ),
-    //           ],
-    //         ),
-    //         SizedBox(height: 20),
-    //         Text('Real-time Demand:'),
-    //         // Implement real-time demand information here
-    //         ListView(
-    //           shrinkWrap: true,
-    //           physics: NeverScrollableScrollPhysics(),
-    //           children: [
-    //             ListTile(
-    //               title: Text('High demand in Area 1'),
-    //               subtitle: Text('10 requests in the last hour'),
-    //             ),
-    //             ListTile(
-    //               title: Text('Moderate demand in Area 2'),
-    //               subtitle: Text('5 requests in the last hour'),
-    //             ),
-    //             ListTile(
-    //               title: Text('Low demand in Area 3'),
-    //               subtitle: Text('2 requests in the last hour'),
-    //             ),
-    //           ],
-    //         ),
-    //         SizedBox(height: 20),
-    //         ElevatedButton(
-    //           onPressed: () {
-    //             // Implement route acceptance functionality here
-    //             // to payment
-    //           },
-    //           child: Text('Accept Route'),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
+  Widget _featureTile({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: AppColors.primaryColor, size: 40),
+        const SizedBox(width: 15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                description,
+                style: const TextStyle(fontSize: 14, color: Colors.white70),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

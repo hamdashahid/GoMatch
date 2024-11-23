@@ -1,14 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gomatch/screens/driver_mode_screen.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'package:gomatch/screens/signup_screen.dart';
 import 'package:gomatch/providers/login_service.dart'; // Import the login service
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:gomatch/screens/home_screen.dart'; // Import HomeScreen
+
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
   static const String idScreen = "LogIn";
-  final TextEditingController emailTextEditingController = TextEditingController();
-  final TextEditingController passwordTextEditingController = TextEditingController();
+  final TextEditingController emailTextEditingController =
+      TextEditingController();
+  final TextEditingController passwordTextEditingController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -84,15 +89,23 @@ class LoginScreen extends StatelessWidget {
                         child: const Center(
                           child: Text(
                             "Login",
-                            style: TextStyle(fontSize: 18.0, fontFamily: "Brand Bold"),
+                            style: TextStyle(
+                                fontSize: 18.0, fontFamily: "Brand Bold"),
                           ),
                         ),
                       ),
                       onPressed: () {
                         if (!emailTextEditingController.text.contains("@")) {
-                          displayToastMessage("Email address is not valid.", context);
+                          displayToastMessage(
+                              "Email address is not valid.", context);
                         } else if (passwordTextEditingController.text.isEmpty) {
-                          displayToastMessage("Password is mandatory.", context);
+                          displayToastMessage(
+                              "Password is mandatory.", context);
+                        } else if (passwordTextEditingController.text.length <
+                            6) {
+                          displayToastMessage(
+                              "Password must be at least 6 characters.",
+                              context);
                         } else {
                           loginAndAuthenticateUser(context);
                         }
@@ -124,15 +137,64 @@ class LoginScreen extends StatelessWidget {
   void loginAndAuthenticateUser(BuildContext context) async {
     String email = emailTextEditingController.text.trim();
     String password = passwordTextEditingController.text.trim();
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      // Sign in the user
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // Navigate to HomeScreen after successful login
-      Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
+
+      User? user = userCredential.user;
+      if (user != null) {
+        // Fetch user documents concurrently
+        final passengerProfileFuture = FirebaseFirestore.instance
+            .collection('passenger_profile')
+            .doc(user.uid)
+            .get();
+        final driverProfileFuture = FirebaseFirestore.instance
+            .collection('driver_profile')
+            .doc(user.uid)
+            .get();
+
+        // Wait for both futures to complete
+        final List<DocumentSnapshot> results = await Future.wait([
+          passengerProfileFuture,
+          driverProfileFuture,
+        ]);
+
+        final passengerDoc = results[0];
+        final driverDoc = results[1];
+
+        if (passengerDoc.exists) {
+          // Navigate to passenger dashboard
+          Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
+        } else if (driverDoc.exists) {
+          // Navigate to driver dashboard
+          Navigator.pushReplacementNamed(context, DriverModeScreen.idScreen);
+        } else {
+          // Neither profile exists
+          displayToastMessage(
+            "Login failed: Account is not registered!!",
+            context,
+          );
+          FirebaseAuth.instance.signOut(); // Ensure user is signed out
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = "No user found with this email.";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Incorrect password.";
+      } else {
+        errorMessage = "Login failed. Please try again.";
+      }
+      displayToastMessage(errorMessage, context);
     } catch (e) {
-      displayToastMessage("Login failed: Account is not registered!!", context);
+      displayToastMessage(
+          "An error occurred. Please try again later.", context);
     }
   }
 }

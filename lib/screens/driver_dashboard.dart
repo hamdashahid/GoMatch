@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gomatch/utils/colors.dart';
 
-class DashboardScreen extends StatelessWidget {
-  static const String idScreen = "DashboardScreen";
+class DriverDashboardScreen extends StatelessWidget {
+  static const String idScreen = "DriverDashboardScreen";
 
   @override
   Widget build(BuildContext context) {

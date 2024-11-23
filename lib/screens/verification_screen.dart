@@ -1,9 +1,24 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gomatch/screens/home_screen.dart';
+import 'package:gomatch/screens/login_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   static const String idScreen = "verification";
+  bool? ispassenger;
+  String? name;
+  String? email;
+  String? phone;
+  String? password;
+
+  VerificationScreen(
+      {super.key,
+      this.ispassenger,
+      this.name,
+      this.email,
+      this.phone,
+      this.password});
 
   @override
   _VerificationScreenState createState() => _VerificationScreenState();
@@ -35,7 +50,34 @@ class _VerificationScreenState extends State<VerificationScreen> {
     });
 
     if (isEmailVerified) {
-      Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Email has been verified.")),
+      );
+      // Attempt to create a new user account
+     
+      if (widget.ispassenger == true) {
+        await FirebaseFirestore.instance
+            .collection('passenger_profile')
+            .doc(user!.uid)
+            .set({
+          'name': widget.name,
+          'phone': widget.phone,
+          'email': widget.email,
+          'password': widget.password,
+        });
+      } else {
+        await FirebaseFirestore.instance
+            .collection('driver_profile')
+            .doc(user!.uid)
+            .set({
+          'name': widget.name,
+          'phone': widget.phone,
+          'email': widget.email,
+          'password': widget.password,
+        });
+      }
+
+      Navigator.pushReplacementNamed(context, LoginScreen.idScreen);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Please verify your email before proceeding.")),
