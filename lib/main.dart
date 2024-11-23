@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 import 'package:flutter/material.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/providers/appData.dart';
+import 'package:gomatch/screens/add_route_screen.dart';
 import 'package:gomatch/screens/driver_dashboard.dart';
 import 'package:gomatch/screens/driver_history_screen.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
@@ -90,6 +91,7 @@ Widget build(BuildContext context) {
         DriverProfileScreen.idScreen: (context) => DriverProfileScreen(),
         DriverHistoryScreen.idScreen: (context) => DriverHistoryScreen(),
         DriverSettingsScreen.idScreen: (context) => const DriverSettingsScreen(),
+        AddRouteScreen.idScreen: (context) => AddRouteScreen(),
       },
     ),
   );

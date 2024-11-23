@@ -20,13 +20,7 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer: AnimatedPositioned(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.fastOutSlowIn,
-        left: isSideMenuClosed ? -288 : 0,
-        height: MediaQuery.of(context).size.height,
-        child: DriverSideMenu(isMenuOpen: !isSideMenuClosed),
-      ),
+      drawer:DriverSideMenu(isMenuOpen: !isSideMenuClosed),
       appBar: AppBar(
         title: const Text('Driver Mode'),
         backgroundColor: AppColors.primaryColor,
