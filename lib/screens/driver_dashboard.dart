@@ -20,6 +20,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   TextEditingController vehicleNameController = TextEditingController();
   TextEditingController startLocationController = TextEditingController();
   TextEditingController endLocationController = TextEditingController();
+  TextEditingController vehicleSeatcontroller = TextEditingController();
   // final TextEditingController startLocationController = TextEditingController();
   final TextEditingController startPickupTimeController =
       TextEditingController();
@@ -27,6 +28,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   final TextEditingController endPickupTimeController = TextEditingController();
   final TextEditingController name = TextEditingController();
   final TextEditingController phone = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
   final List<Map<String, TextEditingController>> stops = [];
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -138,6 +140,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           'vehicleModel': vehicleModelController.text.trim(),
           'vehicleColor': vehicleColorController.text.trim(),
           'vehicleName': vehicleNameController.text.trim(),
+          'vehicleSeat': vehicleSeatcontroller.text.trim(),
         };
 
         // Saving to Firestore under the current user's UID
@@ -219,7 +222,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     if (startLocationController.text.isEmpty ||
         startPickupTimeController.text.isEmpty ||
         endLocationController.text.isEmpty ||
-        endPickupTimeController.text.isEmpty) {
+        endPickupTimeController.text.isEmpty ||
+        priceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all the required fields")),
       );
@@ -231,6 +235,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       "start_pickup_time": startPickupTimeController.text,
       "end_location": endLocationController.text,
       "end_pickup_time": endPickupTimeController.text,
+      "price": priceController.text,
       "stops": stops.map((stop) {
         return {
           "stop_name": stop["name"]?.text,
@@ -295,6 +300,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               userData?.containsKey('vehicleName') == true
                   ? userData!['vehicleName']
                   : '';
+          vehicleSeatcontroller.text =
+              userData?.containsKey('total_seats') == true
+                  ? userData!['total_seats']
+                  : '';
+          priceController.text =
+              userData?.containsKey('price') == true ? userData!['price'] : '';
         });
       }
     } catch (e) {
@@ -304,7 +315,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -500,6 +510,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                             ),
                             controller: vehicleNameController,
                           ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              labelText: 'Total seats',
+                              border: OutlineInputBorder(),
+                            ),
+                            controller: vehicleSeatcontroller,
+                          ),
                         ],
                       ),
                     );
@@ -574,15 +592,67 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                               ),
                                             ),
                                             const SizedBox(height: 10),
-                                            TextFormField(
+                                            //  const SizedBox(height: 10),
+                                            TextField(
                                               controller:
                                                   startPickupTimeController,
                                               decoration: const InputDecoration(
                                                 labelText: "Enter Pickup Time",
                                               ),
-                                              keyboardType:
-                                                  TextInputType.datetime,
+                                              readOnly: true,
+                                              onTap: () async {
+                                                TimeOfDay? pickedTime =
+                                                    await showTimePicker(
+                                                  context: context,
+                                                  initialTime: TimeOfDay.now(),
+                                                  builder:
+                                                      (BuildContext context,
+                                                          Widget? child) {
+                                                    return Theme(
+                                                      data: Theme.of(context)
+                                                          .copyWith(
+                                                        colorScheme:
+                                                            ColorScheme.light(
+                                                          primary: AppColors
+                                                              .primaryColor, // header background color
+                                                          onPrimary: Colors
+                                                              .white, // header text color
+                                                          onSurface: AppColors
+                                                              .secondaryColor, // body text color
+                                                        ),
+                                                        textButtonTheme:
+                                                            TextButtonThemeData(
+                                                          style: TextButton
+                                                              .styleFrom(
+                                                            foregroundColor:
+                                                                AppColors
+                                                                    .primaryColor, // button text color
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: child!,
+                                                    );
+                                                  },
+                                                );
+                                                if (pickedTime != null) {
+                                                  setState(() {
+                                                    startPickupTimeController
+                                                            .text =
+                                                        pickedTime
+                                                            .format(context);
+                                                  });
+                                                }
+                                              },
                                             ),
+                                            // TextFormField(
+                                            //   controller:
+                                            //       startPickupTimeController,
+                                            //   decoration: const InputDecoration(
+                                            //     labelText: "Enter Pickup Time",
+                                            //   ),
+                                            //   keyboardType:
+                                            //       TextInputType.datetime,
+                                            // ),
                                             const SizedBox(height: 16),
                                             const Text(
                                               "End Location",
@@ -597,14 +667,77 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                               ),
                                             ),
                                             const SizedBox(height: 10),
+                                            // TextField(
+                                            //   controller:
+                                            //       endPickupTimeController,
+                                            //   decoration: const InputDecoration(
+                                            //     labelText: "Enter Pickup Time",
+                                            //   ),
+                                            //   keyboardType:
+                                            //       TextInputType.datetime,
+                                            // ),
+
+                                            const SizedBox(height: 10),
                                             TextField(
                                               controller:
                                                   endPickupTimeController,
                                               decoration: const InputDecoration(
-                                                labelText: "Enter Pickup Time",
+                                                labelText: "Enter dropoff Time",
                                               ),
-                                              keyboardType:
-                                                  TextInputType.datetime,
+                                              readOnly: true,
+                                              onTap: () async {
+                                                TimeOfDay? pickedTime =
+                                                    await showTimePicker(
+                                                  context: context,
+                                                  initialTime: TimeOfDay.now(),
+                                                  builder:
+                                                      (BuildContext context,
+                                                          Widget? child) {
+                                                    return Theme(
+                                                      data: Theme.of(context)
+                                                          .copyWith(
+                                                        colorScheme:
+                                                            ColorScheme.light(
+                                                          primary: AppColors
+                                                              .primaryColor, // header background color
+                                                          onPrimary: Colors
+                                                              .white, // header text color
+                                                          onSurface: AppColors
+                                                              .secondaryColor, // body text color
+                                                        ),
+                                                        textButtonTheme:
+                                                            TextButtonThemeData(
+                                                          style: TextButton
+                                                              .styleFrom(
+                                                            foregroundColor:
+                                                                AppColors
+                                                                    .primaryColor, // button text color
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: child!,
+                                                    );
+                                                  },
+                                                );
+                                                if (pickedTime != null) {
+                                                  setState(() {
+                                                    endPickupTimeController
+                                                            .text =
+                                                        pickedTime
+                                                            .format(context);
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                            const SizedBox(height: 10),
+                                            TextField(
+                                              controller: priceController,
+                                              decoration: const InputDecoration(
+                                                labelText: "Price for trip",
+                                              ),
+                                              keyboardType: TextInputType
+                                                  .numberWithOptions(
+                                                      decimal: true),
                                             ),
                                             const SizedBox(height: 16),
                                             const Text(
@@ -686,11 +819,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                   addStop();
                                                 });
                                               },
-                                              icon: const Icon(Icons.add),
+                                              icon: const Icon(Icons.add,
+                                                  color:
+                                                      AppColors.secondaryColor),
                                               label: const Text("Add Stop"),
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor:
-                                                    Colors.blueAccent,
+                                                    AppColors.primaryColor,
+                                                foregroundColor:
+                                                    AppColors.secondaryColor,
                                               ),
                                             ),
                                           ],

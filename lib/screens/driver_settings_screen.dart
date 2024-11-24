@@ -5,7 +5,7 @@ import 'package:gomatch/components/settings_screen/logout_confirmation_bottom_sh
 import 'package:gomatch/components/settings_screen/notifications_settings_bottom_sheet.dart';
 import 'package:gomatch/components/settings_screen/payment_methods_bottom_sheet.dart';
 import 'package:gomatch/components/settings_screen/privacy_policy_bottom_sheet.dart';
-import 'package:gomatch/components/settings_screen/settings_tile.dart'; 
+import 'package:gomatch/components/settings_screen/settings_tile.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'package:gomatch/components/settings_screen/ride_preference_bottom_sheet.dart';
 
@@ -28,22 +28,22 @@ class DriverSettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         children: [
           // Ride Sharing Settings
-          SettingsTile(
-            icon: Icons.local_taxi,
-            title: 'Ride Preferences',
-            subtitle: 'Economy, Luxury',
-            onTap: () {
-              RidePreferencesBottomSheet.show(context);
-            },
-          ),
-          SettingsTile(
-            icon: Icons.payment,
-            title: 'Payment Methods',
-            subtitle: 'Debit Card, EasyPaisa, JazzCash',
-            onTap: () {
-              PaymentMethodsBottomSheet.show(context);
-            },
-          ),
+          // SettingsTile(
+          //   icon: Icons.local_taxi,
+          //   title: 'Ride Preferences',
+          //   subtitle: 'Economy, Luxury',
+          //   onTap: () {
+          //     RidePreferencesBottomSheet.show(context);
+          //   },
+          // ),
+          // SettingsTile(
+          //   icon: Icons.payment,
+          //   title: 'Payment Methods',
+          //   subtitle: 'Debit Card, EasyPaisa, JazzCash',
+          //   onTap: () {
+          //     PaymentMethodsBottomSheet.show(context);
+          //   },
+          // ),
           SettingsTile(
             icon: Icons.notifications,
             title: 'Notifications',
@@ -52,7 +52,7 @@ class DriverSettingsScreen extends StatelessWidget {
               NotificationsSettingsBottomSheet.show(context);
             },
           ),
-          
+
           SettingsTile(
             icon: Icons.privacy_tip,
             title: 'Privacy Policy',

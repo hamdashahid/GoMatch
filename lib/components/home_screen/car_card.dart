@@ -15,8 +15,10 @@ class CarCard extends StatelessWidget {
   final int? selectedCarIndex;
   final int available;
   final Function(int) onCardTap;
+  final Function(int) onBookRide;
   final String pickup;
   final String dropoff;
+  final String price;
 
   const CarCard({
     super.key,
@@ -33,6 +35,8 @@ class CarCard extends StatelessWidget {
     required this.onCardTap,
     required this.pickup,
     required this.dropoff,
+    required this.price,
+    required this.onBookRide,
   });
 
   @override
@@ -41,7 +45,13 @@ class CarCard extends StatelessWidget {
       onTap: () => onCardTap(index),
       child: Card(
         color: AppColors.primaryColor,
-        margin: const EdgeInsets.only(bottom: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: selectedCarIndex == index
+              ? BorderSide(color: AppColors.secondaryColor, width: 5)
+              : BorderSide.none,
+        ),
+        margin: const EdgeInsets.only(bottom: 10, left: 15, right: 15),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
@@ -106,13 +116,14 @@ class CarCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Male: $malePassengers",
+                      "Price: $price",
                       style: const TextStyle(color: Colors.white),
                     ),
-                    Text(
-                      "Female: $femalePassengers",
-                      style: const TextStyle(color: Colors.white),
-                    ),
+                    // Text(
+                    //   "Female: $femalePassengers",
+                    //   style: const TextStyle(color: Colors.white),
+                    // ),
+
                     Text(
                       "Available Seats: $available",
                       style: const TextStyle(color: Colors.white),
@@ -123,6 +134,7 @@ class CarCard extends StatelessWidget {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
+                      onBookRide(index);
                       // Add booking logic
                       _showCarpoolBottomSheet(context);
                     },
@@ -198,10 +210,10 @@ class CarCard extends StatelessWidget {
 
                                   // Add Home and Add Work options
                                   ListTile(
-                                    leading: const Icon(Icons.my_location,color: AppColors.secondaryColor),
+                                    leading: const Icon(Icons.my_location,
+                                        color: AppColors.secondaryColor),
                                     title: const Text('Pickup Location'),
-                                    subtitle:Text(pickup),
-                                    
+                                    subtitle: Text(pickup),
                                   ),
                                   const Divider(),
                                   ListTile(
@@ -209,7 +221,6 @@ class CarCard extends StatelessWidget {
                                         color: AppColors.primaryColor),
                                     title: const Text('Dropoff Location'),
                                     subtitle: Text(dropoff),
-
                                   ),
                                   const Divider(),
                                   ListTile(
@@ -223,7 +234,6 @@ class CarCard extends StatelessWidget {
                                           builder: (context) => SearchScreen(
                                             initialDropOffLocation:
                                                 'Set Dropoff',
-
                                           ),
                                         ),
                                       );
@@ -238,7 +248,9 @@ class CarCard extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => PaymentScreen(),
+                                          builder: (context) => PaymentScreen(
+                                            price: price,
+                                          ),
                                         ),
                                       );
                                     },
@@ -260,5 +272,4 @@ class CarCard extends StatelessWidget {
     );
   }
   // Button to set pickup and dropoff locations
-
 }

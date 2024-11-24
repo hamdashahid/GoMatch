@@ -35,12 +35,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchUserData() async {
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('Profile').doc(user?.uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('passenger_profile').doc(user?.uid).get();
       if (userDoc.exists) {
         setState(() {
-          nameController.text = userDoc['Name'] ?? '';
-          phoneController.text = userDoc['Phone'] ?? '';
-          emailController.text = userDoc['Email'] ?? user?.email ?? '';
+          nameController.text = userDoc['name'] ?? '';
+          phoneController.text = userDoc['phone'] ?? '';
+          emailController.text = userDoc['email'] ?? user?.email ?? '';
         });
       }
     } catch (e) {

@@ -71,10 +71,10 @@ class _SideMenuState extends State<DriverSideMenu> {
                               Navigator.pushNamed(
                                   context, DriverProfileScreen.idScreen);
                               break;
-                            case "Request History":
-                              Navigator.pushNamed(
-                                  context, DriverHistoryScreen.idScreen);
-                              break;
+                            // case "Request History":
+                            //   Navigator.pushNamed(
+                            //       context, DriverHistoryScreen.idScreen);
+                            //   break;
                             case "Dashboard":
                               Navigator.pushNamed(
                                   context, DriverDashboardScreen.idScreen);

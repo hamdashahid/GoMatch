@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:gomatch/components/side_drawer/side_menu.dart';
 import 'package:gomatch/utils/colors.dart';
 
 class PaymentScreen extends StatefulWidget {
   static const String idScreen = "PaymentScreen";
-
-  const PaymentScreen({super.key});
+  final String price;
+  PaymentScreen({super.key, required this.price});
 
   @override
   _PaymentScreenState createState() => _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  bool isSideMenuClosed = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   void _showPaymentOptions(BuildContext context) {
     showDialog(
       context: context,
@@ -116,14 +120,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SideMenu(isMenuOpen: !isSideMenuClosed),
+      appBar: AppBar(
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+        ),
+        title: const Text('Payment Screen'),
+        backgroundColor: AppColors.primaryColor,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      key: _scaffoldKey,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header Section
+                const Image(
+                  image: AssetImage("assets/images/logoTransparent.png"),
+                  width: 390.0,
+                  height: 250.0,
+                  alignment: Alignment.center,
+                ),
                 Container(
                   height: 150.0,
                   decoration: const BoxDecoration(
@@ -141,21 +172,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        const SizedBox(height: 15.0),
+                        const SizedBox(height: 5.0),
                         Stack(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: AppColors.primaryColor,
-                              ),
-                            ),
                             const Center(
                               child: Text(
-                                "Payment Screen",
+                                "Thankyou for choosing GoMatch!",
                                 style: TextStyle(
                                   fontSize: 20.0,
                                   fontFamily: "Brand-Bold",
@@ -169,6 +191,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const SizedBox(height: 10.0),
                         const Text(
                           "Securely complete your payment",
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Brand-Regular",
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        Text(
+                          "Payment : \$${widget.price}",
                           style: TextStyle(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,

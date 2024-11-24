@@ -145,6 +145,7 @@ class SignupScreen extends StatelessWidget {
                       labelText: "Password",
                       isPassword: true,
                     ),
+                    const SizedBox(height: 20.0),
                     ElevatedButton(
                       onPressed: () async {
                         await SignupService.registerNewUser(
@@ -156,6 +157,9 @@ class SignupScreen extends StatelessWidget {
                           true,
                         );
                       },
+                      // style: ElevatedButton.styleFrom(
+                      //   primary: AppColors.secondaryColor,
+                      // ),
                       child: const Center(
                         child: Text(
                           "Create Passenger Account",
@@ -164,6 +168,7 @@ class SignupScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10.0),
                     ElevatedButton(
                       onPressed: () async {
                         await SignupService.registerNewUser(

@@ -57,4 +57,8 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/145.png
+    - assets/wheel.png
+    - assets/man.png
+    - assets/woman.png
+    - assets/seat.png
 

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 import 'package:flutter/material.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
+import 'package:gomatch/components/map_screen/available_cars.dart';
+import 'package:gomatch/components/map_screen/available_seats.dart';
 import 'package:gomatch/providers/appData.dart';
 import 'package:gomatch/screens/add_route_screen.dart';
 import 'package:gomatch/screens/driver_dashboard.dart';
@@ -86,12 +88,14 @@ Widget build(BuildContext context) {
         SettingsScreen.idScreen: (context) => const SettingsScreen(),
         ProfileScreen.idScreen: (context) => ProfileScreen(),
         SearchScreen.idScreen: (context) => const SearchScreen(),
-        PaymentScreen.idScreen: (context) => const PaymentScreen(),
+        PaymentScreen.idScreen: (context) => PaymentScreen(price: ''),
         DriverDashboardScreen.idScreen: (context) => DriverDashboardScreen(),
         DriverProfileScreen.idScreen: (context) => DriverProfileScreen(),
         DriverHistoryScreen.idScreen: (context) => DriverHistoryScreen(),
         DriverSettingsScreen.idScreen: (context) => const DriverSettingsScreen(),
         AddRouteScreen.idScreen: (context) => AddRouteScreen(),
+        AvailableCarsScreen.idScreen: (context) => AvailableCarsScreen(),
+        AvailableSeatsScreen.idScreen: (context) => AvailableSeatsScreen(),
       },
     ),
   );

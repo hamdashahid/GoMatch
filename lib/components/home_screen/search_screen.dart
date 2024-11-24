@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:geolocator/geolocator.dart';
 import 'package:gomatch/Assistants/requestAssistant.dart';
 import 'package:gomatch/configMaps.dart';
@@ -35,9 +37,14 @@ class _SearchScreenState extends State<SearchScreen> {
   TextEditingController dropOffTextEditingController = TextEditingController();
   TextEditingController homeTextEditingController = TextEditingController();
   TextEditingController workTextEditingController = TextEditingController();
+  // TextEditingController nameTextEditingController = TextEditingController();
+  // TextEditingController phoneTextEditingController = TextEditingController();
   FocusNode dropOffFocusNode = FocusNode(); // Add this line
-
-  int? selectedCarIndex;
+  final firestore.FirebaseFirestore _firestore =
+      firestore.FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final List<Map<String, TextEditingController>> rides = [];
+  User? user;
 
   @override
   void initState() {
@@ -48,15 +55,17 @@ class _SearchScreenState extends State<SearchScreen> {
     if (widget.initialPickupLocation != null) {
       pickUpTextEditingController.text = widget.initialPickupLocation!;
     }
-    if (widget.homeAddress != null) {
-      homeTextEditingController.text = widget.homeAddress!;
-    }
-    if (widget.workAddress != null) {
-      workTextEditingController.text = widget.workAddress!;
-    }
+    // if (widget.homeAddress != null) {
+    //   homeTextEditingController.text = widget.homeAddress!;
+    // }
+    // if (widget.workAddress != null) {
+    //   workTextEditingController.text = widget.workAddress!;
+    // }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(dropOffFocusNode);
     });
+
     if (Provider.of<AppData>(context, listen: false).pickUpLocation == null &&
         pickUpTextEditingController.text.isEmpty) {
       setState(() {
@@ -64,6 +73,36 @@ class _SearchScreenState extends State<SearchScreen> {
         updatePickUpLocation("");
       });
       // pickUpTextEditingController.text = _getCurrentLocation();
+    }
+    user = _auth.currentUser;
+    if (user != null) {
+      fetchUserData();
+    }
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      firestore.DocumentSnapshot userDoc =
+          await _firestore.collection('passenger_profile').doc(user?.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          // workTextEditingController.text = userDoc['home_address'] ?? '';
+          // homeTextEditingController.text = userDoc['work_address'] ?? '';
+          var userData = userDoc.data() as Map<String, dynamic>?;
+          workTextEditingController.text =
+              userData?.containsKey('work_address') == true
+                  ? userData!['work_address']
+                  : '';
+          homeTextEditingController.text =
+              userData?.containsKey('home_address') == true
+                  ? userData!['home_address']
+                  : '';
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching user data: $e")),
+      );
     }
   }
 
@@ -85,6 +124,8 @@ class _SearchScreenState extends State<SearchScreen> {
     String placeAddress =
         Provider.of<AppData>(context).pickUpLocation?.placeName ?? "";
     pickUpTextEditingController.text = placeAddress;
+    // TextEditingController homeaddressController = TextEditingController();
+    // TextEditingController workaddressController = TextEditingController();
 
     return Scaffold(
       body: SafeArea(
@@ -184,7 +225,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 child: TextField(
                                   onChanged: (val) {
                                     print("TextField changed with value: $val");
-                                    findPlace(val);
+                                    // findPlace(val);
                                   },
                                   controller: dropOffTextEditingController,
                                   focusNode: dropOffFocusNode,
@@ -218,7 +259,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ListTile(
                       title: Center(
                         child: const Text(
-                          "Available Cars",
+                          "Saved Addresses",
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -227,113 +268,33 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    if (widget.homeAddress != null &&
-                        widget.homeAddress!.isNotEmpty) ...[
-                      ListTile(
-                        title: const Text(
-                          "Home Address:",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        subtitle: Text(
-                          widget.homeAddress!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                      const Divider(color: AppColors.primaryColor),
-                      const SizedBox(height: 10),
-                    ],
-                    if (widget.workAddress != null &&
-                        widget.workAddress!.isNotEmpty) ...[
-                      ListTile(
-                        title: const Text(
-                          "Work Address:",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        subtitle: Text(
-                          widget.workAddress!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                      const Divider(color: AppColors.primaryColor),
-                      const SizedBox(height: 10),
-                    ],
-                    // Wrap ListView with a bounded height
-                    SizedBox(
-                      height: 200, // Adjust the height as needed
-                      child: ListView(
-                        children: [
-                          CarCard(
-                            index: 0,
-                            carDetails: "10-Seater, Male & Female",
-                            pickupTime: "9:30 AM",
-                            departureTime: "10:00 AM",
-                            driverPhone: "+123456789",
-                            isKycVerified: true,
-                            malePassengers: 5,
-                            femalePassengers: 3,
-                            selectedCarIndex: selectedCarIndex,
-                            available: 2,
-                            pickup: pickUpTextEditingController.text,
-                            dropoff: dropOffTextEditingController.text,
-                            onCardTap: (int index) {
-                              setState(() {
-                                selectedCarIndex =
-                                    selectedCarIndex == index ? null : index;
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => PaymentScreen(),
-                                //   ),
-                                // );
-                              });
-                            },
-                          ),
-                          CarCard(
-                            index: 1,
-                            carDetails: "10-Seater, Female Only",
-                            pickupTime: "11:00 AM",
-                            departureTime: "11:30 AM",
-                            driverPhone: "+987654321",
-                            isKycVerified: true,
-                            malePassengers: 0,
-                            femalePassengers: 7,
-                            available: 3,
-                            selectedCarIndex: selectedCarIndex,
-                            pickup: pickUpTextEditingController.text,
-                            dropoff: dropOffTextEditingController.text,
-                            onCardTap: (int index) {
-                              setState(
-                                () {
-                                  selectedCarIndex =
-                                      selectedCarIndex == index ? null : index;
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => PaymentScreen(),
-                                  //   ),
-                                  // );
-                                },
-                              );
-                            },
-                          ),
-                        ],
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: homeTextEditingController,
+                      decoration: const InputDecoration(
+                        labelText: 'Home Address',
+                        hintText: 'Enter home address',
                       ),
                     ),
+                    // const Divider(color: AppColors.primaryColor),
+                    const SizedBox(height: 20),
+                    // ],
+                    // if (widget.workAddress != null &&
+                    //     widget.workAddress!.isNotEmpty) ...[
+                    TextFormField(
+                      controller: workTextEditingController,
+                      decoration: const InputDecoration(
+                        labelText: 'Work Address',
+                        hintText: 'Enter work address',
+                      ),
+                      // Text('Your work address'),
+                      // onTap: () {
+                      //   _showAddressOptionsDialog(context, 'work');
+                      // },
+                    ),
+                    // const Divider(color: AppColors.primaryColor),
+                    const SizedBox(height: 10),
+                    // ],
                     // Button to navigate to the MapPage
                     ElevatedButton(
                       onPressed: () {
@@ -341,7 +302,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             pickUpTextEditingController.text;
                         String dropOffLocation =
                             dropOffTextEditingController.text;
-
+                        saveProfile(context);
                         // Send pickup and drop-off locations to the MapPage
                         convertToGeoPoint(pickupLocation)
                             .then((pickupGeoPoint) {
@@ -380,6 +341,41 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  void saveProfile(BuildContext context) async {
+    try {
+      // Collecting all the input data
+      final verificationData = {
+        'home_address': homeTextEditingController.text,
+        'work_address': workTextEditingController.text,
+      };
+
+      // Saving to Firestore under the current user's UID
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User is not authenticated")),
+        );
+        return;
+      }
+
+      String uid = user.uid;
+      await firestore.FirebaseFirestore.instance
+          .collection('passenger_profile')
+          .doc(uid)
+          .set(verificationData, firestore.SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Data stored successfully!")),
+      );
+      return;
+    } catch (e) {
+      print("Error saving driver profile: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving pasenger profile: $e")),
+      );
+    }
+  }
+
   // Function to get current location if pickupLocation is not provided
   Future<String> _getCurrentLocation() async {
     // Request permission to access location
@@ -403,10 +399,10 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<String> getAddressFromCoordinates(
       double latitude, double longitude) async {
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(latitude, longitude);
+      List<geocoding.Placemark> placemarks =
+          await geocoding.placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
+        geocoding.Placemark place = placemarks[0];
         return "${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
       } else {
         return "No address available";
@@ -419,20 +415,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<GeoPoint> convertToGeoPoint(String location) async {
     // Using the geocoding package to convert location string to GeoPoint
-    List<Location> locations = await locationFromAddress(location);
+    List<geocoding.Location> locations =
+        await geocoding.locationFromAddress(location);
     if (locations.isNotEmpty) {
       double latitude = locations[0].latitude;
       double longitude = locations[0].longitude;
       // print("Pickup Location: $pickupGeoPoint");
-      print("$latitude, $longitude");
+      // print("$latitude, $longitude");
       return GeoPoint(latitude: latitude, longitude: longitude);
     } else {
       throw Exception("Failed to convert location to GeoPoint");
     }
-  }
-
-  void findPlace(String placeName) async {
-    // Your place finding logic here
   }
 
   void calculateAndDisplayDistance(

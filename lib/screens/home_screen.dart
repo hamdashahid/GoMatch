@@ -59,85 +59,183 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize addresses
-
-    // locatePosition();
-    // _setInitialLocation();
-    // _initializeHomeAndWorkCoordinates();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SideMenu(isMenuOpen: !isSideMenuClosed),
+      appBar: AppBar(
+        title: const Text('Home'),
+        backgroundColor: AppColors.primaryColor,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       key: _scaffoldKey,
       body: Stack(
         children: [
-          // mapKey.isNotEmpty
-          //     ?
-          Padding(
-            padding: const EdgeInsets.only(
-                top: 90, bottom: 160, left: 20, right: 20),
-            child: Center(
-              child: SizedBox.expand(
-                child: MapPage(),
-              ),
-            ),
-          ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.fastOutSlowIn,
-            width: 288,
-            left: isSideMenuClosed ? -288 : 0,
-            height: MediaQuery.of(context).size.height,
-            child: SideMenu(isMenuOpen: !isSideMenuClosed),
-          ),
+          // const SizedBox(height: 20.0),
 
-          Positioned(
-            top: 10,
-            left: isSideMenuClosed ? 16 : 225,
-            child: MenuBtn(
-              press: () {
-                setState(() {
-                  isSideMenuClosed = !isSideMenuClosed;
-                });
-              },
-              isMenuOpen: !isSideMenuClosed,
-            ),
-          ),
-
-          // Draggable Floating Action Button
-          Positioned(
-            left: buttonX,
-            top: buttonY,
-            child: Draggable(
-              feedback: Material(
-                child: FloatingActionButton(
-                  onPressed: () => _showCarpoolBottomSheet(context),
-                  backgroundColor: AppColors.primaryColor,
-                  child: const Icon(Icons.directions_car,
-                      color: AppColors.secondaryColor),
+          // Main Content
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Welcome Banner
+                Container(
+                  // padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      const Image(
+                        image: AssetImage("assets/images/logoTransparent.png"),
+                        width: 390.0,
+                        height: 250.0,
+                        alignment: Alignment.center,
+                      ),
+                      // const SizedBox(height: 180),
+                      const Text(
+                        'Welcome to Go Match!',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'You can enjoy a seamless and comfortable ride experience with our trusted drivers.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.primaryColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              childWhenDragging: Container(), // Show nothing while dragging
-              child: FloatingActionButton(
-                onPressed: () => _showCarpoolBottomSheet(context),
-                backgroundColor: AppColors.primaryColor,
-                child: const Icon(Icons.directions_car,
-                    color: AppColors.secondaryColor),
-              ),
-              onDragEnd: (details) {
-                // Update the position of the button when drag ends
-                setState(() {
-                  buttonX =
-                      details.offset.dx - 28; // Adjust to center the button
-                  buttonY =
-                      details.offset.dy - 28; // Adjust to center the button
-                });
-              },
+
+                // Features Section
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20.0, right: 20.0, bottom: 20.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Why Ride with GoMatch?',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      _featureTile(
+                        icon: Icons.directions_car_rounded,
+                        title: 'Convenient Rides',
+                        description:
+                            'Get a ride quickly and easily with our user-friendly app.',
+                      ),
+                      const SizedBox(height: 15),
+                      _featureTile(
+                        icon: Icons.attach_money_rounded,
+                        title: 'Affordable Prices',
+                        description:
+                            'Enjoy competitive pricing and transparent fares.',
+                      ),
+                      const SizedBox(height: 15),
+                      _featureTile(
+                        icon: Icons.security_rounded,
+                        title: 'Safety First',
+                        description:
+                            'We prioritize safety for both drivers and passengers.',
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Get Started Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Navigate to the next screen or perform an action
+                      // _showCarpoolBottomSheet(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SearchScreen(
+                            initialDropOffLocation: 'Set Dropoff',
+                            homeAddress: homeaddressController.text,
+                            workAddress: workaddressController.text,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: AppColors.primaryColor,
+                      backgroundColor: AppColors.secondaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Get Started',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _featureTile({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: AppColors.primaryColor, size: 40),
+        const SizedBox(width: 15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondaryColor,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                description,
+                style: TextStyle(fontSize: 14, color: AppColors.lightPrimary),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -386,7 +484,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
-
 }

@@ -20,7 +20,7 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer:DriverSideMenu(isMenuOpen: !isSideMenuClosed),
+      drawer: DriverSideMenu(isMenuOpen: !isSideMenuClosed),
       appBar: AppBar(
         title: const Text('Driver Mode'),
         backgroundColor: AppColors.primaryColor,
@@ -33,13 +33,7 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
       ),
       body: Stack(
         children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/145.png',
-              fit: BoxFit.fitHeight,
-            ),
-          ),
+          // const SizedBox(height: 40.0),
 
           // Main Content
           SingleChildScrollView(
@@ -48,10 +42,16 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
               children: [
                 // Welcome Banner
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  // padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      const SizedBox(height: 270),
+                      const Image(
+                        image: AssetImage("assets/images/logoTransparent.png"),
+                        width: 390.0,
+                        height: 250.0,
+                        alignment: Alignment.center,
+                      ),
+                      // const SizedBox(height: 200),
                       const Text(
                         'Welcome, Driver!',
                         style: TextStyle(
@@ -66,7 +66,7 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
                         'Join us at GoMatch and help us connect passengers with safe and reliable rides!',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white,
+                          color: AppColors.primaryColor,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -146,13 +146,13 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.secondaryColor,
                 ),
               ),
               const SizedBox(height: 5),
               Text(
                 description,
-                style: const TextStyle(fontSize: 14, color: Colors.white70),
+                style: TextStyle(fontSize: 14, color: AppColors.lightPrimary),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/components/side_drawer/menu_item_list.dart';
 import 'package:gomatch/components/side_drawer/side_menu_tile.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
@@ -38,7 +39,8 @@ class _SideMenuState extends State<SideMenu> {
                 style: TextStyle(
                   fontSize: 24, // Change font size as needed
                   fontWeight: FontWeight.bold, // Make it bold
-                  color: AppColors.secondaryColor, // Change text color if needed
+                  color:
+                      AppColors.secondaryColor, // Change text color if needed
                 ),
               ),
               const SizedBox(height: 20), // Space between title and menu items
@@ -70,10 +72,6 @@ class _SideMenuState extends State<SideMenu> {
                               Navigator.pushNamed(
                                   context, HistoryScreen.idScreen);
                               break;
-                            case "Driver Mode":
-                              Navigator.pushNamed(
-                                  context, DriverModeScreen.idScreen);
-                              break;
                             case "Settings":
                               Navigator.pushNamed(
                                   context, SettingsScreen.idScreen);
@@ -81,7 +79,10 @@ class _SideMenuState extends State<SideMenu> {
                             case "FAQ":
                               Navigator.pushNamed(context, FAQScreen.idScreen);
                               break;
-
+                            case "Search Ride":
+                              Navigator.pushNamed(
+                                  context, SearchScreen.idScreen);
+                              break;
                             default:
                               break;
                           }
