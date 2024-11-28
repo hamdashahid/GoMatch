@@ -106,6 +106,61 @@ class SignupScreen extends StatelessWidget {
   final TextEditingController passwordTextEditingController =
       TextEditingController();
 
+  void _showAccountTypeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.primaryColor,
+          title: const Text(
+            "Select Account Type",
+            style: TextStyle(color: AppColors.secondaryColor),
+          ),
+          content: const Text(
+            "Please choose an account type to create.",
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Navigator.of(context).pop();
+                await SignupService.registerNewUser(
+                  context,
+                  nameTextEditingController.text,
+                  emailTextEditingController.text,
+                  phoneTextEditingController.text,
+                  passwordTextEditingController.text,
+                  true, // isPassenger = true
+                );
+              },
+              child: const Text(
+                "Passenger",
+                style: TextStyle(color: AppColors.secondaryColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Navigator.of(context).pop();
+                await SignupService.registerNewUser(
+                  context,
+                  nameTextEditingController.text,
+                  emailTextEditingController.text,
+                  phoneTextEditingController.text,
+                  passwordTextEditingController.text,
+                  false, // isPassenger = false
+                );
+              },
+              child: const Text(
+                "Driver",
+                style: TextStyle(color: AppColors.secondaryColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,47 +202,51 @@ class SignupScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20.0),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondaryColor,
+                          foregroundColor: AppColors.primaryColor),
                       onPressed: () async {
-                        await SignupService.registerNewUser(
-                          context,
-                          nameTextEditingController.text,
-                          emailTextEditingController.text,
-                          phoneTextEditingController.text,
-                          passwordTextEditingController.text,
-                          true,
-                        );
+                        // await SignupService.registerNewUser(
+                        //   context,
+                        //   nameTextEditingController.text,
+                        //   emailTextEditingController.text,
+                        //   phoneTextEditingController.text,
+                        //   passwordTextEditingController.text,
+                        //   true,
+                        // );
+                        _showAccountTypeDialog(context);
                       },
                       // style: ElevatedButton.styleFrom(
                       //   primary: AppColors.secondaryColor,
                       // ),
                       child: const Center(
                         child: Text(
-                          "Create Passenger Account",
+                          "Create Account",
                           style: TextStyle(
                               fontSize: 18.0, fontFamily: "Brand Bold"),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10.0),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await SignupService.registerNewUser(
-                          context,
-                          nameTextEditingController.text,
-                          emailTextEditingController.text,
-                          phoneTextEditingController.text,
-                          passwordTextEditingController.text,
-                          false,
-                        );
-                      },
-                      child: const Center(
-                        child: Text(
-                          "Create Driver Account",
-                          style: TextStyle(
-                              fontSize: 18.0, fontFamily: "Brand Bold"),
-                        ),
-                      ),
-                    ),
+                    // ElevatedButton(
+                    //   onPressed: () async {
+                    //     await SignupService.registerNewUser(
+                    //       context,
+                    //       nameTextEditingController.text,
+                    //       emailTextEditingController.text,
+                    //       phoneTextEditingController.text,
+                    //       passwordTextEditingController.text,
+                    //       false,
+                    //     );
+                    //   },
+                    //   child: const Center(
+                    //     child: Text(
+                    //       "Create Driver Account",
+                    //       style: TextStyle(
+                    //           fontSize: 18.0, fontFamily: "Brand Bold"),
+                    //     ),
+                    //   ),
+                    // ),
                     TextButton(
                       onPressed: () {
                         Navigator.pushNamedAndRemoveUntil(

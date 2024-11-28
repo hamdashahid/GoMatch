@@ -76,6 +76,14 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 15.0),
+                    TextButton(
+                      onPressed: () {
+                        showForgotPasswordDialog(context);
+                      },
+                      child: Text("Forgot Password?",
+                          style: TextStyle(color: AppColors.secondaryColor)),
+                    ),
+                    const SizedBox(height: 15.0),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondaryColor,
@@ -169,9 +177,17 @@ class LoginScreen extends StatelessWidget {
 
         if (passengerDoc.exists) {
           // Navigate to passenger dashboard
+          await FirebaseFirestore.instance
+              .collection('passenger_profile')
+              .doc(user.uid)
+              .update({'password': password});
           Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
         } else if (driverDoc.exists) {
           // Navigate to driver dashboard
+          await FirebaseFirestore.instance
+              .collection('driver_profile')
+              .doc(user.uid)
+              .update({'password': password});
           Navigator.pushReplacementNamed(context, DriverModeScreen.idScreen);
         } else {
           // Neither profile exists
@@ -195,6 +211,77 @@ class LoginScreen extends StatelessWidget {
     } catch (e) {
       displayToastMessage(
           "An error occurred. Please try again later.", context);
+    }
+  }
+
+  void showForgotPasswordDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.primaryColor,
+          title: Text("Forgot Password",
+              style: TextStyle(color: AppColors.secondaryColor)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: "Enter your email",
+                  border: OutlineInputBorder(),
+                  // bo
+                  labelStyle: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text("Cancel",
+                  style: TextStyle(color: AppColors.secondaryColor)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondaryColor,
+                foregroundColor: AppColors.primaryColor,
+              ),
+              onPressed: () async {
+                await sendResetEmail(emailController.text, context);
+              },
+              child: Text("Send"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> sendResetEmail(String email, BuildContext context) async {
+    try {
+      if (email.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please enter your email")),
+        );
+        return;
+      }
+
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      Navigator.of(context)
+          .pop(); // Close the dialog after successful email send
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Password reset email sent to $email")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
     }
   }
 }

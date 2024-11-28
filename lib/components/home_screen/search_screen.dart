@@ -297,6 +297,17 @@ class _SearchScreenState extends State<SearchScreen> {
                     // ],
                     // Button to navigate to the MapPage
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        backgroundColor: AppColors.secondaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 50.0,
+                          vertical: 10.0,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                      ),
                       onPressed: () {
                         String pickupLocation =
                             pickUpTextEditingController.text;
@@ -329,7 +340,11 @@ class _SearchScreenState extends State<SearchScreen> {
                           print("Error converting pickup location: $error");
                         });
                       },
-                      child: const Text("Set Locations"),
+                      child: const Text("Set Locations",
+                          style: TextStyle(
+                            // fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          )),
                     ),
                   ],
                 ),

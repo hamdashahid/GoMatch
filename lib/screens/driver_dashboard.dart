@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:gomatch/components/driver_dashboard_screen/dashboard_tile.dart';
 import 'package:gomatch/utils/colors.dart';
 
@@ -23,7 +24,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   TextEditingController vehicleSeatcontroller = TextEditingController();
   // final TextEditingController startLocationController = TextEditingController();
   final TextEditingController startPickupTimeController =
-      TextEditingController();
+      TextEditingController(); 
   // final TextEditingController endLocationController = TextEditingController();
   final TextEditingController endPickupTimeController = TextEditingController();
   final TextEditingController name = TextEditingController();
@@ -140,7 +141,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           'vehicleModel': vehicleModelController.text.trim(),
           'vehicleColor': vehicleColorController.text.trim(),
           'vehicleName': vehicleNameController.text.trim(),
-          'vehicleSeat': vehicleSeatcontroller.text.trim(),
+          'vehicleSeat': int.parse(vehicleSeatcontroller.text.trim()),
+          'available_seats': int.parse(vehicleSeatcontroller.text.trim()),
+          'booked_seats': [],
         };
 
         // Saving to Firestore under the current user's UID
@@ -176,6 +179,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   void addStop() {
     setState(() {
+      // GeoPoint temp = GeoPoint(0.0, 0.0);
       stops.add({
         "name": TextEditingController(),
         "time": TextEditingController(),
@@ -218,6 +222,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
+  Future<GeoPoint> convertToGeoPoint(String? location) async {
+    // Using the geocoding package to convert location string to GeoPoint
+    List<Location> locations = await locationFromAddress(location!);
+    if (locations.isNotEmpty) {
+      double latitude = locations[0].latitude;
+      double longitude = locations[0].longitude;
+      // print("Pickup Location: $pickupGeoPoint");
+      // print("$latitude, $longitude");
+      return GeoPoint(latitude, longitude);
+    } else {
+      throw Exception("Failed to convert location to GeoPoint");
+    }
+  }
+
   void handleSubmit() {
     if (startLocationController.text.isEmpty ||
         startPickupTimeController.text.isEmpty ||
@@ -229,23 +247,44 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       );
       return;
     }
-
-    final routeData = {
-      "start_location": startLocationController.text,
-      "start_pickup_time": startPickupTimeController.text,
-      "end_location": endLocationController.text,
-      "end_pickup_time": endPickupTimeController.text,
-      "price": priceController.text,
-      "stops": stops.map((stop) {
+    GeoPoint pick = GeoPoint(0.0, 0.0);
+    GeoPoint drop = GeoPoint(0.0, 0.0);
+    Future<List<Map<String, dynamic>>> getStopsData() async {
+      pick = await convertToGeoPoint(startLocationController.text);
+      drop = await convertToGeoPoint(endLocationController.text);
+      return await Future.wait(stops.map((stop) async {
+        GeoPoint temp = await convertToGeoPoint(stop["name"]?.text);
         return {
           "stop_name": stop["name"]?.text,
           "arrival_time": stop["time"]?.text,
+          "latitude": temp.latitude,
+          "longitude": temp.longitude,
         };
-      }).toList(),
-      "timestamp": FieldValue.serverTimestamp(),
-    };
+      }).toList());
+    }
 
-    storeToFirestore(routeData);
+    getStopsData().then((stopsData) {
+      final routeData = {
+        "start_location": {
+          "location": startLocationController.text,
+          "latitude": pick.latitude,
+          "longitude": pick.longitude,
+        },
+        "start_pickup_time": startPickupTimeController.text,
+        "end_location": {
+          "location": endLocationController.text,
+          "latitude": drop.latitude,
+          "longitude": drop.longitude,
+        },
+        "end_pickup_time": endPickupTimeController.text,
+        "price": priceController.text,
+        "total_seats": vehicleSeatcontroller.text,
+        "stops": stopsData,
+        "timestamp": FieldValue.serverTimestamp(),
+      };
+
+      storeToFirestore(routeData);
+    });
   }
 
   @override
@@ -301,8 +340,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ? userData!['vehicleName']
                   : '';
           vehicleSeatcontroller.text =
-              userData?.containsKey('total_seats') == true
-                  ? userData!['total_seats']
+              userData?.containsKey('vehicleSeat') == true
+                  ? userData!['vehicleSeat'].toString()
+                  : '';
+          startLocationController.text =
+              userData?.containsKey('start_location') == true
+                  ? userData!['start_location']['location']
+                  : '';
+          endLocationController.text =
+              userData?.containsKey('end_location') == true
+                  ? userData!['end_location']['location']
+                  : '';
+          startPickupTimeController.text =
+              userData?.containsKey('start_pickup_time') == true
+                  ? userData!['start_pickup_time']
+                  : '';
+          endPickupTimeController.text =
+              userData?.containsKey('end_pickup_time') == true
+                  ? userData!['end_pickup_time']
                   : '';
           priceController.text =
               userData?.containsKey('price') == true ? userData!['price'] : '';

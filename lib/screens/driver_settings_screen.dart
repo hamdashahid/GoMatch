@@ -83,6 +83,8 @@ class DriverSettingsScreen extends StatelessWidget {
             subtitle: 'Delete my account',
             onTap: () {
               DeleteAccountConfirmationBottomSheet.show(context);
+              // Navigator.of(context).pushReplacementNamed('LogIn');
+              // DeleteAccountConfirmationScreen();
             },
           ),
         ],

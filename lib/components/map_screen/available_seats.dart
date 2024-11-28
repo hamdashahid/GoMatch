@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gomatch/components/side_drawer/side_menu.dart';
+import 'package:gomatch/screens/payment_screen.dart';
 import 'package:gomatch/utils/colors.dart';
 
 class AvailableSeatsScreen extends StatefulWidget {
   final String? driverUid;
+  final String? price;
   static const String idScreen = "AvailableSeats";
 
-  AvailableSeatsScreen({super.key, this.driverUid});
+  AvailableSeatsScreen({super.key, this.driverUid, this.price});
 
   @override
   _AvailableSeatsState createState() => _AvailableSeatsState();
@@ -37,11 +39,16 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       if (driverProfile.exists) {
         // Safely access 'booked_seats' and 'total_seats' fields
         setState(() {
-          totalSeats = driverProfile['total_seats'] ??
-              0; // Default to 0 seats if not available
-          bookedSeats = List<String>.from(
-              (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ??
-                  []); // Default to empty list if not available
+          FirebaseFirestore.instance
+              .collection('driver_profile')
+              .doc(widget.driverUid)
+              .update({'available_seats': totalSeats - bookedSeats.length});
+          totalSeats = driverProfile['vehicleSeat'] ?? 0;
+          bookedSeats = (driverProfile['booked_seats'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList();
+          print(totalSeats);
+          print(bookedSeats);
         });
       } else {
         print("Driver profile does not exist.");
@@ -178,13 +185,284 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         onPressed: () {
           // Handle the done button press
           // Navigator.pop(context);
-          Navigator.pushNamed(context, 'PaymentScreen');
+          // Navigator.pushNamed(context, 'PaymentScreen');
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PaymentScreen(
+                  // driverUid: widget.driverUid,
+                  price: widget.price!,
+                  // selectedCar: cars[index],
+                  // price: car['price'] ?? "N/A",
+                ),
+              ));
         },
         child: Icon(Icons.done),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: AppColors.secondaryColor,
       ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          onPressed: () {
+            fetchDriverAndShowBottomSheet(context, widget.driverUid!);
+            // showModalBottomSheet(
+            //   context: context,
+            //   builder: (context) {
+            //     return fetchDriverAndShowBottomSheet(context,widget.driverUid); // Assuming CarDetailsBottomSheet is already implemented
+            //   },
+            // );
+          },
+          child: Text('Show Car Details'),
+          style: ElevatedButton.styleFrom(
+            foregroundColor: AppColors.primaryColor,
+            backgroundColor: AppColors.secondaryColor,
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            textStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
     );
+  }
+
+  void fetchDriverAndShowBottomSheet(
+      BuildContext context, String driverUid) async {
+    try {
+      // Fetch driver data from Firestore
+      DocumentSnapshot driverSnapshot = await FirebaseFirestore.instance
+          .collection('driver_profile')
+          .doc(driverUid)
+          .get();
+
+      if (driverSnapshot.exists) {
+        Map<String, dynamic> driverData =
+            driverSnapshot.data() as Map<String, dynamic>;
+        // Show the bottom sheet with the fetched driver data
+        _showCarpoolBottomSheet(context, driverData);
+      } else {
+        // Handle the case where the driver does not exist
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Driver data not found.')),
+        );
+      }
+    } catch (e) {
+      // Handle errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching driver data: $e')),
+      );
+    }
+  }
+
+  // Function to show the bottom sheet of Car Button
+  void _showCarpoolBottomSheet(
+      BuildContext context, Map<String, dynamic> driverData) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                Navigator.of(context)
+                    .pop(); // Close bottom sheet on outside tap
+              },
+              child: Stack(
+                children: [
+                  GestureDetector(
+                    onTap: () {}, // Prevent dismissing when tapping inside
+                    child: DraggableScrollableSheet(
+                      expand: true,
+                      initialChildSize: 0.6,
+                      minChildSize: 0.5,
+                      maxChildSize: 1,
+                      builder: (context, scrollController) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          child: SingleChildScrollView(
+                            controller: scrollController,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Container(
+                                      width: 50,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      // borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      "Driver Details",
+                                      style: TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.secondaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.person,
+                                      color: AppColors.secondaryColor,
+                                    ),
+                                    title: Text(driverData['name'] ?? 'N/A'),
+                                    subtitle:
+                                        Text('Phone: ${driverData['phone']}'),
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.directions_car,
+                                      color: AppColors.secondaryColor,
+                                    ),
+                                    title: Text(
+                                      '${driverData['vehicleName']} - ${driverData['vehicleColor']}',
+                                    ),
+                                    subtitle: Text(
+                                        'Model: ${driverData['vehicleModel']}'),
+                                    trailing: Text(
+                                        'Seats: ${driverData['available_seats']}/${driverData['total_seats']}'),
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.currency_exchange,
+                                        color: AppColors.secondaryColor),
+                                    title: const Text('Price'),
+                                    subtitle:
+                                        Text('PKR ${driverData['price']}'),
+                                  ),
+                                  const Divider(),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      // borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      "Route Details",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.secondaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on,
+                                        color: AppColors.secondaryColor),
+                                    title: Text(
+                                        'From: ${driverData['start_location']['location']}'),
+                                    subtitle: Text(
+                                        'To: ${driverData['end_location']['location']}'),
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.timer,
+                                        color: AppColors.secondaryColor),
+                                    title: Text(
+                                        'Pickup Time: ${driverData['start_pickup_time']}'),
+                                    subtitle: Text(
+                                        'Drop-off Time: ${driverData['end_pickup_time']}'),
+                                  ),
+                                  const Divider(),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      // borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      "Stops",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.secondaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  ...List.generate(driverData['stops'].length,
+                                      (index) {
+                                    final stop = driverData['stops'][index];
+                                    return ListTile(
+                                      leading: const Icon(Icons.stop_circle,
+                                          color: AppColors.secondaryColor),
+                                      title: Text(
+                                          stop['stop_name'] ?? 'Unknown Stop'),
+                                      subtitle: Text(
+                                          'Arrival Time: ${stop['arrival_time']}'),
+                                    );
+                                  }),
+                                  const Divider(),
+                                  // Center(
+                                  //   child: ElevatedButton(
+                                  //     style: ElevatedButton.styleFrom(
+                                  //       backgroundColor:
+                                  //           AppColors.secondaryColor,
+                                  //       foregroundColor: AppColors.primaryColor,
+                                  //     ),
+                                  //     onPressed: () {
+                                  //       Navigator.push(
+                                  //         context,
+                                  //         MaterialPageRoute(
+                                  //           builder: (context) => PaymentScreen(
+                                  //             price: driverData['price'],
+                                  //           ),
+                                  //         ),
+                                  //       );
+                                  //     },
+                                  //     child: const Text('Confirm Booking'),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> createRideRequest(
+      String userId, String driverId, Map<String, dynamic> rideDetails) async {
+    final rideId = FirebaseFirestore.instance.collection('rides').doc().id;
+    await FirebaseFirestore.instance.collection('rides').doc(rideId).set({
+      'userId': userId,
+      'driverId': driverId,
+      'status': 'pending',
+      'pickupLocation': rideDetails['pickupLocation'],
+      'dropoffLocation': rideDetails['dropoffLocation'],
+      'price': rideDetails['price'],
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 }
 
