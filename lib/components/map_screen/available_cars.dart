@@ -162,7 +162,7 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
       });
 
       // Wait for 1 minute before checking the status
-      await Future.delayed(const Duration(minutes: 1));
+      await Future.delayed(const Duration(minutes: 3));
 
       // Check the status after 1 minute
       DocumentSnapshot rideRequestSnapshot = await rideRequestRef.get();
