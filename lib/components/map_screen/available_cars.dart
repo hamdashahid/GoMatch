@@ -36,7 +36,8 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
   @override
   void initState() {
     super.initState();
-    availableCarsFuture = fetchAvailableCars(widget.pickup!, widget.dropoff!);
+    availableCarsFuture =
+        fetchAvailableCars(widget.pickup ?? "", widget.dropoff ?? "");
   }
 
   Future<List<Map<String, dynamic>>> fetchPassengerRides(String uid) async {
@@ -61,46 +62,130 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
     return rideHistory;
   }
 
-Future<void> sendNotificationToDriver(String token, String title, String message) async {
-  try {
-    final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  Future<void> sendNotificationToDriver(
+      String token, String title, String message) async {
+    try {
+      // final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    // Send FCM message
-    await messaging.sendMessage(
-      to: token,
-      data: {
-        'title': title,
-        'body': message,
-      },
-    );
-  } catch (e) {
-    print('Error sending notification: $e');
+      // Send FCM message
+      // await messaging.sendMessage(
+      //   to: token,
+      //   data: {
+      //     'title': title,
+      //     'body': message,
+      //   },
+      // );
+    } catch (e) {
+      print('Error sending notification: $e');
+    }
   }
-}
 
-
-Future<void> bookRide(String driverId, String passengerId, String pickup, String destination) async {
-  try {
-    // Create ride request document in Firestore
-    var rideRequestRef = FirebaseFirestore.instance.collection('ride_requests').add({
-      'driverId': driverId,
-      'passengerId': passengerId,
-      'pickupLocation': pickup,
-      'destination': destination,
-      'status': 'pending', // Default status
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    // Send notification to driver using FCM
-    String driverToken = await getDriverFCMToken(driverId); // Get driver's FCM token (you can store it in Firestore).
-    sendNotificationToDriver(driverToken, 'New Ride Request', 'You have a new ride request from a passenger.');
-
-    print('Ride request sent successfully');
-  } catch (e) {
-    print('Error sending ride request: $e');
+  Future<void> bookRide(String driverId, String passengerId, String pickup,
+      String destination) async {
+    print("Driver ID: $driverId");
+    try {
+      // Create ride request document in Firestore
+      var doc =
+          FirebaseFirestore.instance.collection('driver_profile').doc(driverId);
+      var rideRequestRef = await doc.collection('ride_requests').add({
+        'driverId': driverId,
+        'passengerId': passengerId,
+        'pickupLocation': pickup,
+        'destination': destination,
+        'status': 'pending', // Default status
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      waitForDriverResponse(driverId, rideRequestRef.id);
+    } catch (e) {
+      print('Error sending ride request: $e');
+    }
   }
-}
 
+  Future<void> waitForDriverResponse(
+      String driverId, String rideRequestId) async {
+    try {
+      DocumentReference rideRequestRef = FirebaseFirestore.instance
+          .collection('driver_profile')
+          .doc(driverId)
+          .collection('ride_requests')
+          .doc(rideRequestId);
+
+      // Show a dialog to the user to wait for the driver's response
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Waiting for driver's response"),
+            content: const Text(
+                "Please wait while the driver accepts your ride request."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      // Listen for changes in the ride request document
+      rideRequestRef.snapshots().listen((snapshot) {
+        if (snapshot.exists) {
+          String status =
+              (snapshot.data() as Map<String, dynamic>)['status'] ?? 'pending';
+          if (status == 'accepted') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text("Ride request was accepted by the driver")),
+            );
+            Navigator.of(context).pop(); // Close the waiting dialog
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AvailableSeatsScreen(
+                  driverUid: driverId,
+                  price: widget.price ?? "N/A",
+                ),
+              ),
+            );
+          } else if (status == 'rejected') {
+            Navigator.of(context).pop(); // Close the waiting dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text("Ride request was rejected by the driver")),
+            );
+          }
+        }
+      });
+
+      // Wait for 1 minute before checking the status
+      await Future.delayed(const Duration(minutes: 1));
+
+      // Check the status after 1 minute
+      DocumentSnapshot rideRequestSnapshot = await rideRequestRef.get();
+      if (rideRequestSnapshot.exists) {
+        String status =
+            (rideRequestSnapshot.data() as Map<String, dynamic>)['status'] ??
+                'pending';
+        if (status == 'pending') {
+          Navigator.of(context).pop(); // Close the waiting dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text("Ride request timed out. Please try again.")),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error waiting for driver response: $e');
+      Navigator.of(context).pop(); // Close the waiting dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("An error occurred. Please try again.")),
+      );
+    }
+  }
 
   void handleSubmit() async {
     if (widget.pickup == "" || widget.dropoff == "") {
@@ -111,9 +196,9 @@ Future<void> bookRide(String driverId, String passengerId, String pickup, String
     }
 
     final routeData = {
-      "pickup_location": widget.pickup,
-      "dropoff_location": widget.dropoff,
-      "price": widget.price,
+      "pickup_location": widget.pickup ?? "",
+      "dropoff_location": widget.dropoff ?? "",
+      "price": widget.price ?? "N/A",
       "rides": rides.map((ride) {
         return {
           "pickup": ride["pickup"]?.text,
@@ -192,22 +277,26 @@ Future<void> bookRide(String driverId, String passengerId, String pickup, String
                     //     .pop(); // Close bottom sheet after selection
                     print("Selected car: $selectedCarIndex");
                   },
-                  pickup: widget.pickup!,
-                  dropoff: widget.dropoff!,
+                  pickup: widget.pickup ?? "",
+                  dropoff: widget.dropoff ?? "",
                   onBookRide: (index) {
                     widget.price = car['price'] ?? "N/A";
                     handleSubmit();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AvailableSeatsScreen(
-                            driverUid: car['driverUid'],
-                            price: car['price'] ?? "N/A",
-                            
-                          ),
-                        )
-                        
-                        );
+                    user = _auth.currentUser;
+                    if (user != null) {
+                      bookRide(car['driverUid'], user!.uid, widget.pickup ?? "",
+                          widget.dropoff ?? "");
+                    } else {
+                      return;
+                    }
+                    // Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => AvailableSeatsScreen(
+                    //         driverUid: car['driverUid'],
+                    //         price: car['price'] ?? "N/A",
+                    //       ),
+                    //     ));
                   },
                 );
               },
@@ -344,6 +433,4 @@ Future<void> bookRide(String driverId, String passengerId, String pickup, String
       throw Exception("Failed to convert location to GeoPoint");
     }
   }
-  
-  getDriverFCMToken(String driverId) {}
 }

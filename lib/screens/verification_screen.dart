@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:gomatch/screens/home_screen.dart';
 import 'package:gomatch/screens/login_screen.dart';
@@ -45,6 +46,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Future<void> checkEmailVerified() async {
     await user?.reload(); // Reload to get the latest verification status
     user = _auth.currentUser;
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+
     setState(() {
       isEmailVerified = user?.emailVerified ?? false;
       isLoading = false;
@@ -65,6 +68,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           'phone': widget.phone,
           'email': widget.email,
           'password': widget.password,
+          'fcmToken': fcmToken,
         });
       } else {
         await FirebaseFirestore.instance
@@ -75,6 +79,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
           'phone': widget.phone,
           'email': widget.email,
           'password': widget.password,
+          'fcmToken': fcmToken,
+          'driverUid': user!.uid,
         });
       }
 

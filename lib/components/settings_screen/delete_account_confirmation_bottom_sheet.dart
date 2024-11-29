@@ -47,11 +47,13 @@ class _DeleteAccountConfirmationBottomSheetState
           // User is a driver, delete driver profile
           await driverCollection.doc(userId).delete();
           await currentUser.delete();
+          // await FirebaseAuth.instance.currentUser?.delete();
         } else if (passengerSnapshot.exists) {
           // User is a passenger, delete passenger profile
           print('User is a passenger, delete passenger profile');
           await passengerCollection.doc(userId).delete();
           await currentUser.delete();
+          // await FirebaseAuth.instance.currentUser?.delete();
         } else {
           // User profile not found
           print('User profile not found.');

@@ -76,14 +76,6 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 15.0),
-                    TextButton(
-                      onPressed: () {
-                        showForgotPasswordDialog(context);
-                      },
-                      child: Text("Forgot Password?",
-                          style: TextStyle(color: AppColors.secondaryColor)),
-                    ),
-                    const SizedBox(height: 15.0),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondaryColor,
@@ -118,6 +110,17 @@ class LoginScreen extends StatelessWidget {
                           loginAndAuthenticateUser(context);
                         }
                       },
+                    ),
+                    const SizedBox(height: 15.0),
+                    Container(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          showForgotPasswordDialog(context);
+                        },
+                        child: Text("Forgot Password?",
+                            style: TextStyle(color: AppColors.secondaryColor)),
+                      ),
                     ),
                   ],
                 ),

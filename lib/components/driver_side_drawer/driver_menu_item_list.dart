@@ -6,7 +6,7 @@ final List<MenuItem> sideMenus = [
   MenuItem(title: "Home", icon: Icons.home),
   MenuItem(title: "Profile", icon: Icons.person_2_outlined),
   MenuItem(title: "Dashboard", icon: Icons.dashboard),
-  MenuItem(title: "Request Requests", icon: Icons.history),
+  MenuItem(title: "Ride Requests", icon: Icons.directions_car),
   MenuItem(title: "Settings", icon: Icons.settings),
   MenuItem(title: "FAQ", icon: Icons.question_answer),
 ];

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/components/map_screen/available_cars.dart';
@@ -17,6 +18,7 @@ import 'package:gomatch/screens/home_screen.dart';
 import 'package:gomatch/screens/login_screen.dart';
 import 'package:gomatch/screens/payment_screen.dart';
 import 'package:gomatch/screens/profile_screen.dart';
+import 'package:gomatch/screens/ride_request_screen.dart';
 import 'package:gomatch/screens/settings_screen.dart';
 import 'package:gomatch/screens/signup_screen.dart';
 import 'package:gomatch/utils/firebase_ref.dart';
@@ -27,6 +29,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // FirebaseMessaging messaging = FirebaseMessaging.instance;
   runApp(const MyApp());
 }
 
@@ -98,6 +101,7 @@ class MyApp extends StatelessWidget {
           AddRouteScreen.idScreen: (context) => AddRouteScreen(),
           AvailableCarsScreen.idScreen: (context) => AvailableCarsScreen(),
           AvailableSeatsScreen.idScreen: (context) => AvailableSeatsScreen(),
+          RideRequestScreen.idScreen: (context) => RideRequestScreen(),
         },
       ),
     );

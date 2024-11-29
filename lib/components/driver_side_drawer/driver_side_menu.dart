@@ -8,6 +8,7 @@ import 'package:gomatch/screens/driver_profile_screen.dart';
 import 'package:gomatch/screens/driver_settings_screen.dart';
 // import 'package:gomatch/screens/driver_mode_screen.dart';
 import 'package:gomatch/screens/faq_screen.dart';
+import 'package:gomatch/screens/ride_request_screen.dart';
 // import 'package:gomatch/screens/history_screen.dart';
 // import 'package:gomatch/screens/home_screen.dart';
 // import 'package:gomatch/screens/driver_profile_screen.dart';
@@ -72,8 +73,8 @@ class _SideMenuState extends State<DriverSideMenu> {
                                   context, DriverProfileScreen.idScreen);
                               break;
                             case "Ride Requests":
-                              // Navigator.pushNamed(
-                              //     context, DriverHistoryScreen.idScreen);
+                              Navigator.pushNamed(
+                                  context, RideRequestScreen.idScreen);
                               break;
                             case "Dashboard":
                               Navigator.pushNamed(

@@ -24,7 +24,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   TextEditingController vehicleSeatcontroller = TextEditingController();
   // final TextEditingController startLocationController = TextEditingController();
   final TextEditingController startPickupTimeController =
-      TextEditingController(); 
+      TextEditingController();
   // final TextEditingController endLocationController = TextEditingController();
   final TextEditingController endPickupTimeController = TextEditingController();
   final TextEditingController name = TextEditingController();
@@ -147,6 +147,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         };
 
         // Saving to Firestore under the current user's UID
+
         User? user = FirebaseAuth.instance.currentUser;
         if (user == null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -699,15 +700,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                 }
                                               },
                                             ),
-                                            // TextFormField(
-                                            //   controller:
-                                            //       startPickupTimeController,
-                                            //   decoration: const InputDecoration(
-                                            //     labelText: "Enter Pickup Time",
-                                            //   ),
-                                            //   keyboardType:
-                                            //       TextInputType.datetime,
-                                            // ),
+
                                             const SizedBox(height: 16),
                                             const Text(
                                               "End Location",
@@ -722,15 +715,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                               ),
                                             ),
                                             const SizedBox(height: 10),
-                                            // TextField(
-                                            //   controller:
-                                            //       endPickupTimeController,
-                                            //   decoration: const InputDecoration(
-                                            //     labelText: "Enter Pickup Time",
-                                            //   ),
-                                            //   keyboardType:
-                                            //       TextInputType.datetime,
-                                            // ),
 
                                             const SizedBox(height: 10),
                                             TextField(
@@ -842,9 +826,61 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                             labelText:
                                                                 "Stop ${index + 1} Time of Arrival",
                                                           ),
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .datetime,
+                                                          readOnly: true,
+                                                          onTap: () async {
+                                                            TimeOfDay?
+                                                                pickedTime =
+                                                                await showTimePicker(
+                                                              context: context,
+                                                              initialTime:
+                                                                  TimeOfDay
+                                                                      .now(),
+                                                              builder: (BuildContext
+                                                                      context,
+                                                                  Widget?
+                                                                      child) {
+                                                                return Theme(
+                                                                  data: Theme.of(
+                                                                          context)
+                                                                      .copyWith(
+                                                                    colorScheme:
+                                                                        ColorScheme
+                                                                            .light(
+                                                                      primary:
+                                                                          AppColors
+                                                                              .primaryColor, // header background color
+                                                                      onPrimary:
+                                                                          Colors
+                                                                              .white, // header text color
+                                                                      onSurface:
+                                                                          AppColors
+                                                                              .secondaryColor, // body text color
+                                                                    ),
+                                                                    textButtonTheme:
+                                                                        TextButtonThemeData(
+                                                                      style: TextButton
+                                                                          .styleFrom(
+                                                                        foregroundColor:
+                                                                            AppColors.primaryColor, // button text color
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  child: child!,
+                                                                );
+                                                              },
+                                                            );
+                                                            if (pickedTime !=
+                                                                null) {
+                                                              setState(() {
+                                                                stops[index][
+                                                                            "time"]
+                                                                        ?.text =
+                                                                    pickedTime
+                                                                        .format(
+                                                                            context);
+                                                              });
+                                                            }
+                                                          },
                                                         ),
                                                         Align(
                                                           alignment: Alignment

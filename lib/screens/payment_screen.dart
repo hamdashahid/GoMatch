@@ -65,7 +65,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           content: const Text(
-            'Your payment through JazzCash was successful.',
+            'Your payment through JazzCash was successful. & your ride has been confirmed.',
             style: TextStyle(
               fontFamily: "Brand-Regular",
             ),
@@ -98,7 +98,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           content: const Text(
-            'Your payment through EasyPaisa was successful.',
+            'Your payment through EasyPaisa was successful. & Your ride has been confirmed.',
             style: TextStyle(
               fontFamily: "Brand-Regular",
             ),
@@ -230,7 +230,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       const SizedBox(height: 10),
                       TextField(
                         decoration: InputDecoration(
-                          labelText: 'Card Number',
+                          labelText: 'Phone Number',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.credit_card),
                           labelStyle: TextStyle(color: AppColors.primaryColor),
@@ -246,52 +246,52 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 16.0),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: 'Expiry Date',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.date_range),
-                                labelStyle:
-                                    TextStyle(color: AppColors.primaryColor),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: AppColors.secondaryColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: AppColors.secondaryColor),
-                                ),
-                              ),
-                              keyboardType: TextInputType.datetime,
-                            ),
-                          ),
-                          const SizedBox(width: 10.0),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: 'CVV',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.lock),
-                                labelStyle:
-                                    TextStyle(color: AppColors.primaryColor),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: AppColors.secondaryColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: AppColors.secondaryColor),
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                              obscureText: true,
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: TextField(
+                      //         decoration: InputDecoration(
+                      //           labelText: 'Expiry Date',
+                      //           border: OutlineInputBorder(),
+                      //           prefixIcon: Icon(Icons.date_range),
+                      //           labelStyle:
+                      //               TextStyle(color: AppColors.primaryColor),
+                      //           enabledBorder: OutlineInputBorder(
+                      //             borderSide: BorderSide(
+                      //                 color: AppColors.secondaryColor),
+                      //           ),
+                      //           focusedBorder: OutlineInputBorder(
+                      //             borderSide: BorderSide(
+                      //                 color: AppColors.secondaryColor),
+                      //           ),
+                      //         ),
+                      //         keyboardType: TextInputType.datetime,
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 10.0),
+                      //     Expanded(
+                      //       child: TextField(
+                      //         decoration: InputDecoration(
+                      //           labelText: 'CVV',
+                      //           border: OutlineInputBorder(),
+                      //           prefixIcon: Icon(Icons.lock),
+                      //           labelStyle:
+                      //               TextStyle(color: AppColors.primaryColor),
+                      //           enabledBorder: OutlineInputBorder(
+                      //             borderSide: BorderSide(
+                      //                 color: AppColors.secondaryColor),
+                      //           ),
+                      //           focusedBorder: OutlineInputBorder(
+                      //             borderSide: BorderSide(
+                      //                 color: AppColors.secondaryColor),
+                      //           ),
+                      //         ),
+                      //         keyboardType: TextInputType.number,
+                      //         obscureText: true,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
                       const SizedBox(height: 20.0),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
