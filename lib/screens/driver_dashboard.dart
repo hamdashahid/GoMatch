@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:gomatch/components/driver_dashboard_screen/dashboard_tile.dart';
 import 'package:gomatch/utils/colors.dart';
+import 'package:intl/intl.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   static const String idScreen = "DriverDashboardScreen";
@@ -30,6 +31,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   final TextEditingController name = TextEditingController();
   final TextEditingController phone = TextEditingController();
   final TextEditingController priceController = TextEditingController();
+
   final List<Map<String, TextEditingController>> stops = [];
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -184,6 +186,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       stops.add({
         "name": TextEditingController(),
         "time": TextEditingController(),
+        "stop_price": TextEditingController(),
       });
     });
   }
@@ -258,6 +261,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         return {
           "stop_name": stop["name"]?.text,
           "arrival_time": stop["time"]?.text,
+          "stop_price": stop["stop_price"]?.text,
           "latitude": temp.latitude,
           "longitude": temp.longitude,
         };
@@ -634,7 +638,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             const Text(
-                                              "Start Location",
+                                              "Pickup Location",
                                               style: TextStyle(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.bold),
@@ -644,7 +648,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                   startLocationController,
                                               decoration: const InputDecoration(
                                                 labelText:
-                                                    "Enter Start Location",
+                                                    "Enter Pickup Location",
                                               ),
                                             ),
                                             const SizedBox(height: 10),
@@ -818,6 +822,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                         const SizedBox(
                                                             height: 10),
                                                         TextField(
+                                                          controller: stops[
+                                                                  index]
+                                                              ["stop_price"],
+                                                          decoration:
+                                                              InputDecoration(
+                                                            labelText:
+                                                                "Stop ${index + 1} Price",
+                                                          ),
+                                                        ),
+                                                        TextField(
                                                           controller:
                                                               stops[index]
                                                                   ["time"],
@@ -869,15 +883,33 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                                 );
                                                               },
                                                             );
+
                                                             if (pickedTime !=
                                                                 null) {
+                                                              final now =
+                                                                  DateTime
+                                                                      .now();
+                                                              final selectedTime =
+                                                                  DateTime(
+                                                                now.year,
+                                                                now.month,
+                                                                now.day,
+                                                                pickedTime.hour,
+                                                                pickedTime
+                                                                    .minute,
+                                                              );
+
+                                                              final formattedTime =
+                                                                  DateFormat(
+                                                                          'hh:mm a')
+                                                                      .format(
+                                                                          selectedTime); // Formatting to include AM/PM
+
                                                               setState(() {
                                                                 stops[index][
                                                                             "time"]
                                                                         ?.text =
-                                                                    pickedTime
-                                                                        .format(
-                                                                            context);
+                                                                    formattedTime;
                                                               });
                                                             }
                                                           },
@@ -999,10 +1031,54 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                             itemBuilder: (context, index) {
                               var stop =
                                   stopsList[index] as Map<String, dynamic>;
-                              return ListTile(
-                                title: Text("Stop Name: ${stop['stop_name']}"),
-                                subtitle: Text(
-                                    "Arrival Time: ${stop['arrival_time']}"),
+                              return Card(
+                                color: AppColors.primaryColor,
+                                elevation: 4,
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: ListTile(
+                                  leading: const Icon(
+                                    Icons.stop_circle,
+                                    color: AppColors.lightPrimary,
+                                  ),
+                                  contentPadding: const EdgeInsets.all(16.0),
+                                  title: Text(
+                                    "Stop Name: ${stop['stop_name']}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0,
+                                        color: AppColors.secondaryColor),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        "Arrival Time: ${stop['arrival_time']}",
+                                        style: const TextStyle(
+                                          fontSize: 14.0,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(
+                                        "Price: ${stop['stop_price']}",
+                                        style: const TextStyle(
+                                          fontSize: 14.0,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.location_on,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
                               );
                             },
                           );

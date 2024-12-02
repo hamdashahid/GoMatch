@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gomatch/components/side_drawer/side_menu.dart';
+import 'package:gomatch/providers/receipt.dart';
 import 'package:gomatch/utils/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaymentScreen extends StatefulWidget {
   static const String idScreen = "PaymentScreen";
@@ -14,6 +16,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   bool isSideMenuClosed = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int receiptNumber = 0;
 
   void _showPaymentOptions(BuildContext context) {
     showDialog(
@@ -51,8 +54,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  void _processJazzCashPayment() {
+  void _processJazzCashPayment() async {
     // Implement JazzCash payment logic here
+    fetchData();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -78,6 +82,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Navigator.of(context).pop();
               },
             ),
+            TextButton(
+              child: const Text('Show Receipt',
+                  style: TextStyle(color: AppColors.primaryColor)),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ReceiptScreen(
+                        receiptNumber: receiptNumber,
+                        date: "12/12/2021",
+                        amount: widget.price,
+                        paymentMethod: "JazzCash"),
+                  ),
+                );
+              },
+            ),
           ],
         );
       },
@@ -86,6 +105,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   void _processEasyPaisaPayment() {
     // Implement EasyPaisa payment logic here
+    fetchData();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -111,10 +131,49 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Navigator.of(context).pop();
               },
             ),
+            TextButton(
+              child: const Text('Show Receipt',
+                  style: TextStyle(color: AppColors.primaryColor)),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ReceiptScreen(
+                        receiptNumber: receiptNumber,
+                        date: "12/12/2021",
+                        amount: widget.price,
+                        paymentMethod: "EasyPaisa"),
+                  ),
+                );
+              },
+            ),
           ],
         );
       },
     );
+  }
+
+  void fetchData() async {
+    // Fetch data from Firestore
+    DocumentSnapshot receipt = await FirebaseFirestore.instance
+        .collection('receipt')
+        .doc('1234')
+        .get();
+
+    if (receipt.exists) {
+      // Process the receipt data
+      // int currentReceiptNumber = int.parse(receipt['number']);
+      receiptNumber = receipt['number'];
+      // Update the receipt number in Firestore
+      await FirebaseFirestore.instance
+          .collection('receipt')
+          .doc('1234')
+          .update({'number': (receiptNumber + 1)});
+      debugPrint('Receipt Data: ${receipt.data()}');
+    } else {
+      debugPrint('No such document!');
+    }
+
+    if (!mounted) return;
   }
 
   @override

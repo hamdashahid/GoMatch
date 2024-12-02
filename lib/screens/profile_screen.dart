@@ -17,7 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? user;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
+  // final TextEditingController emailController = TextEditingController();
 
   bool isLoading = false;
 
@@ -40,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           nameController.text = userDoc['name'] ?? '';
           phoneController.text = userDoc['phone'] ?? '';
-          emailController.text = userDoc['email'] ?? user?.email ?? '';
+          // emailController.text = userDoc['email'] ?? user?.email ?? '';
         });
       }
     } catch (e) {
@@ -50,43 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> saveProfileData() async {
-    if (user == null) return;
-
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      DocumentSnapshot userDoc = await _firestore.collection('Profile').doc(user!.uid).get();
-      if (userDoc.exists) {
-        String savedEmail = userDoc['Email'] ?? '';
-        if (savedEmail == emailController.text) {
-          await _firestore.collection('Profile').doc(user!.uid).set({
-            'Name': nameController.text,
-            'Phone': phoneController.text,
-            'Email': emailController.text,
-          }, SetOptions(merge: true)); // Only update specified fields
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Profile updated successfully!")),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Email does not match the saved data.")),
-          );
-        }
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to update profile: $e")),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +78,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     keyboardType: TextInputType.phone,
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
-                    controller: emailController,
-                    decoration: InputDecoration(labelText: "Email"),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
+                  // TextFormField(
+                  //   controller: emailController,
+                  //   decoration: InputDecoration(labelText: "Email"),
+                  //   keyboardType: TextInputType.emailAddress,
+                  // ),
                   SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: saveProfileData,
@@ -130,12 +94,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> saveProfileData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await _firestore.collection('passenger_profile').doc(user?.uid).update({
+        'name': nameController.text,
+        'phone': phoneController.text,
+        // 'email': emailController.text,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Profile updated successfully")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating profile: $e")),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     // Dispose controllers to free resources
     nameController.dispose();
     phoneController.dispose();
-    emailController.dispose();
+    // emailController.dispose();
     super.dispose();
   }
 }

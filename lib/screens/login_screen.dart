@@ -7,9 +7,16 @@ import 'package:gomatch/providers/login_service.dart'; // Import the login servi
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:gomatch/screens/home_screen.dart'; // Import HomeScreen
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
   static const String idScreen = "LogIn";
+
+  LoginScreen({super.key});
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailTextEditingController =
       TextEditingController();
   final TextEditingController passwordTextEditingController =
@@ -273,14 +280,59 @@ class LoginScreen extends StatelessWidget {
         );
         return;
       }
+      try {
+        // Fetch user documents concurrently
+        final passengerProfileFuture = FirebaseFirestore.instance
+            .collection('passenger_profile')
+            .where('email', isEqualTo: email)
+            .get();
+        final driverProfileFuture = FirebaseFirestore.instance
+            .collection('driver_profile')
+            .where('email', isEqualTo: email)
+            .get();
 
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        // Wait for both futures to complete
+        final List<QuerySnapshot> results = await Future.wait([
+          passengerProfileFuture,
+          driverProfileFuture,
+        ]);
 
-      Navigator.of(context)
-          .pop(); // Close the dialog after successful email send
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Password reset email sent to $email")),
-      );
+        final passengerDocs = results[0].docs;
+        final driverDocs = results[1].docs;
+
+        if (passengerDocs.isNotEmpty || driverDocs.isNotEmpty) {
+          // Send password reset email
+          await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+          if (!mounted) return;
+          Navigator.of(context)
+              .pop(); // Close the dialog after successful email send
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Password reset email sent to $email")),
+          );
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("No user found with this email.")),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage;
+        if (e.code == 'user-not-found') {
+          errorMessage = "No user found with this email.";
+        } else {
+          errorMessage = "Failed to send reset email. Please try again.";
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("An error occurred. Please try again later.")),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),

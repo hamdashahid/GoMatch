@@ -98,12 +98,18 @@ Future<void> sendResetEmail(String email, BuildContext context) async {
       return;
     }
 
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-
-    Navigator.of(context).pop(); // Close the dialog after successful email send
-    ScaffoldMessenger.of(context).showSnackBar(
+    final List<String> signInMethods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+    if (signInMethods.isNotEmpty) {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      Navigator.of(context).pop(); // Close the dialog after successful email send
+      ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Password reset email sent to $email")),
-    );
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("No user found with this email")),
+      );
+    }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Error: ${e.toString()}")),

@@ -35,8 +35,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   TextEditingController pickUpTextEditingController = TextEditingController();
   TextEditingController dropOffTextEditingController = TextEditingController();
-  TextEditingController homeTextEditingController = TextEditingController();
-  TextEditingController workTextEditingController = TextEditingController();
+  // TextEditingController homeTextEditingController = TextEditingController();
+  // TextEditingController workTextEditingController = TextEditingController();
   // TextEditingController nameTextEditingController = TextEditingController();
   // TextEditingController phoneTextEditingController = TextEditingController();
   FocusNode dropOffFocusNode = FocusNode(); // Add this line
@@ -76,35 +76,35 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     user = _auth.currentUser;
     if (user != null) {
-      fetchUserData();
+      // fetchUserData();
     }
   }
 
-  Future<void> fetchUserData() async {
-    try {
-      firestore.DocumentSnapshot userDoc =
-          await _firestore.collection('passenger_profile').doc(user?.uid).get();
-      if (userDoc.exists) {
-        setState(() {
-          // workTextEditingController.text = userDoc['home_address'] ?? '';
-          // homeTextEditingController.text = userDoc['work_address'] ?? '';
-          var userData = userDoc.data() as Map<String, dynamic>?;
-          workTextEditingController.text =
-              userData?.containsKey('work_address') == true
-                  ? userData!['work_address']
-                  : '';
-          homeTextEditingController.text =
-              userData?.containsKey('home_address') == true
-                  ? userData!['home_address']
-                  : '';
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error fetching user data: $e")),
-      );
-    }
-  }
+  // Future<void> fetchUserData() async {
+  //   try {
+  //     firestore.DocumentSnapshot userDoc =
+  //         await _firestore.collection('passenger_profile').doc(user?.uid).get();
+  //     if (userDoc.exists) {
+  //       setState(() {
+  //         // workTextEditingController.text = userDoc['home_address'] ?? '';
+  //         // homeTextEditingController.text = userDoc['work_address'] ?? '';
+  //         var userData = userDoc.data() as Map<String, dynamic>?;
+  //         workTextEditingController.text =
+  //             userData?.containsKey('work_address') == true
+  //                 ? userData!['work_address']
+  //                 : '';
+  //         homeTextEditingController.text =
+  //             userData?.containsKey('home_address') == true
+  //                 ? userData!['home_address']
+  //                 : '';
+  //       });
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("Error fetching user data: $e")),
+  //     );
+  //   }
+  // }
 
   void updatePickUpLocation(String newLocation) async {
     if (newLocation.isEmpty) {
@@ -256,95 +256,99 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ListTile(
-                      title: Center(
-                        child: const Text(
-                          "Saved Addresses",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // ListTile(
+                    //   title: Center(
+                    //     child: const Text(
+                    //       "Saved Addresses",
+                    //       style: TextStyle(
+                    //         fontSize: 24,
+                    //         fontWeight: FontWeight.bold,
+                    //         color: AppColors.primaryColor,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(height: 20),
-                    TextFormField(
-                      controller: homeTextEditingController,
-                      decoration: const InputDecoration(
-                        labelText: 'Home Address',
-                        hintText: 'Enter home address',
-                      ),
-                    ),
+                    // TextFormField(
+                    //   controller: homeTextEditingController,
+                    //   decoration: const InputDecoration(
+                    //     labelText: 'Home Address',
+                    //     hintText: 'Enter home address',
+                    //   ),
+                    // ),
                     // const Divider(color: AppColors.primaryColor),
                     const SizedBox(height: 20),
                     // ],
                     // if (widget.workAddress != null &&
                     //     widget.workAddress!.isNotEmpty) ...[
-                    TextFormField(
-                      controller: workTextEditingController,
-                      decoration: const InputDecoration(
-                        labelText: 'Work Address',
-                        hintText: 'Enter work address',
-                      ),
-                      // Text('Your work address'),
-                      // onTap: () {
-                      //   _showAddressOptionsDialog(context, 'work');
-                      // },
-                    ),
+                    // TextFormField(
+                    //   controller: workTextEditingController,
+                    //   decoration: const InputDecoration(
+                    //     labelText: 'Work Address',
+                    //     hintText: 'Enter work address',
+                    //   ),
+                    //   // Text('Your work address'),
+                    //   // onTap: () {
+                    //   //   _showAddressOptionsDialog(context, 'work');
+                    //   // },
+                    // ),
                     // const Divider(color: AppColors.primaryColor),
                     const SizedBox(height: 10),
                     // ],
                     // Button to navigate to the MapPage
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: AppColors.primaryColor,
-                        backgroundColor: AppColors.secondaryColor,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 50.0,
-                          vertical: 10.0,
+                    Container(
+                      alignment: Alignment.center,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: AppColors.primaryColor,
+                          backgroundColor: AppColors.secondaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 50.0,
+                            vertical: 10.0,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                      ),
-                      onPressed: () {
-                        String pickupLocation =
-                            pickUpTextEditingController.text;
-                        String dropOffLocation =
-                            dropOffTextEditingController.text;
-                        saveProfile(context);
-                        // Send pickup and drop-off locations to the MapPage
-                        convertToGeoPoint(pickupLocation)
-                            .then((pickupGeoPoint) {
-                          convertToGeoPoint(dropOffLocation).then(
-                            (dropOffGeoPoint) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MapPage(
-                                    pickupLocation: pickupGeoPoint,
-                                    destinationLocation: dropOffGeoPoint,
-                                    pickupAddress: pickupLocation,
-                                    destinationAddress: dropOffLocation,
+                        onPressed: () {
+                          String pickupLocation =
+                              pickUpTextEditingController.text;
+                          String dropOffLocation =
+                              dropOffTextEditingController.text;
+                          // saveProfile(context);
+                          // Send pickup and drop-off locations to the MapPage
+                          convertToGeoPoint(pickupLocation)
+                              .then((pickupGeoPoint) {
+                            convertToGeoPoint(dropOffLocation).then(
+                              (dropOffGeoPoint) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MapPage(
+                                      pickupLocation: pickupGeoPoint,
+                                      destinationLocation: dropOffGeoPoint,
+                                      pickupAddress: pickupLocation,
+                                      destinationAddress: dropOffLocation,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ).catchError((error) {
-                            // Handle error for drop-off location conversion
-                            print("Error converting drop-off location: $error");
+                                );
+                              },
+                            ).catchError((error) {
+                              // Handle error for drop-off location conversion
+                              print(
+                                  "Error converting drop-off location: $error");
+                            });
+                          }).catchError((error) {
+                            // Handle error for pickup location conversion
+                            print("Error converting pickup location: $error");
                           });
-                        }).catchError((error) {
-                          // Handle error for pickup location conversion
-                          print("Error converting pickup location: $error");
-                        });
-                      },
-                      child: const Text("Set Locations",
-                          style: TextStyle(
-                            // fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          )),
+                        },
+                        child: const Text("Set Locations",
+                            style: TextStyle(
+                              // fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            )),
+                      ),
                     ),
                   ],
                 ),
@@ -356,40 +360,40 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  void saveProfile(BuildContext context) async {
-    try {
-      // Collecting all the input data
-      final verificationData = {
-        'home_address': homeTextEditingController.text,
-        'work_address': workTextEditingController.text,
-      };
+  // void saveProfile(BuildContext context) async {
+  //   try {
+  //     // Collecting all the input data
+  //     // final verificationData = {
+  //     //   'home_address': homeTextEditingController.text,
+  //     //   'work_address': workTextEditingController.text,
+  //     // };
 
-      // Saving to Firestore under the current user's UID
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User is not authenticated")),
-        );
-        return;
-      }
+  //     // Saving to Firestore under the current user's UID
+  //     User? user = FirebaseAuth.instance.currentUser;
+  //     if (user == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("User is not authenticated")),
+  //       );
+  //       return;
+  //     }
 
-      String uid = user.uid;
-      await firestore.FirebaseFirestore.instance
-          .collection('passenger_profile')
-          .doc(uid)
-          .set(verificationData, firestore.SetOptions(merge: true));
+  //     String uid = user.uid;
+  //     await firestore.FirebaseFirestore.instance
+  //         .collection('passenger_profile')
+  //         .doc(uid)
+  //         .set(verificationData, firestore.SetOptions(merge: true));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data stored successfully!")),
-      );
-      return;
-    } catch (e) {
-      print("Error saving driver profile: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error saving pasenger profile: $e")),
-      );
-    }
-  }
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Data stored successfully!")),
+  //     );
+  //     return;
+  //   } catch (e) {
+  //     print("Error saving driver profile: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("Error saving pasenger profile: $e")),
+  //     );
+  //   }
+  // }
 
   // Function to get current location if pickupLocation is not provided
   Future<String> _getCurrentLocation() async {
