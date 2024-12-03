@@ -6,10 +6,12 @@ import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/components/map_screen/available_cars.dart';
 import 'package:gomatch/components/map_screen/available_seats.dart';
 import 'package:gomatch/providers/appData.dart';
+import 'package:gomatch/providers/receipt.dart';
 import 'package:gomatch/screens/add_route_screen.dart';
 import 'package:gomatch/screens/driver_dashboard.dart';
 import 'package:gomatch/screens/driver_history_screen.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
+import 'package:gomatch/screens/driver_payments_screen.dart';
 import 'package:gomatch/screens/driver_profile_screen.dart';
 import 'package:gomatch/screens/driver_settings_screen.dart';
 import 'package:gomatch/screens/faq_screen.dart';
@@ -102,6 +104,12 @@ class MyApp extends StatelessWidget {
           AvailableCarsScreen.idScreen: (context) => AvailableCarsScreen(),
           AvailableSeatsScreen.idScreen: (context) => AvailableSeatsScreen(),
           RideRequestScreen.idScreen: (context) => RideRequestScreen(),
+          DriverPaymentsScreen.idScreen: (context) => DriverPaymentsScreen(),
+          ReceiptScreen.idScreen: (context) => ReceiptScreen(
+                date: '',
+                amount: '',
+                paymentMethod: '',
+              ),
         },
       ),
     );

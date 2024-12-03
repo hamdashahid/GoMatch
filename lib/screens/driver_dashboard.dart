@@ -88,7 +88,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ),
                     onPressed: () {
                       saveDriverProfile(context, title);
-
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '$title data stored successfully!',
+                            style:
+                                const TextStyle(color: AppColors.primaryColor),
+                          ),
+                          backgroundColor: AppColors.secondaryColor,
+                        ),
+                      );
                       Navigator.pop(context); // Close the bottom sheet
                     },
                     child: const Text(
@@ -529,6 +538,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   },
                 ),
+
                 DashboardTile(
                   icon: Icons.directions_car,
                   title: 'Registration',

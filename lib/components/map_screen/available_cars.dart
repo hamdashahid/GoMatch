@@ -29,7 +29,7 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final List<Map<String, TextEditingController>> rides = [];
   List<Map<String, dynamic>> rideHistory = [];
-
+  String ride = "";
   User? user;
   // final List<Map<String, TextEditingController>> rides = [];
 
@@ -95,6 +95,7 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
         'status': 'pending', // Default status
         'createdAt': FieldValue.serverTimestamp(),
       });
+      ride = rideRequestRef.id;
       waitForDriverResponse(driverId, rideRequestRef.id);
     } catch (e) {
       print('Error sending ride request: $e');
@@ -148,6 +149,7 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
                 builder: (context) => AvailableSeatsScreen(
                   driverUid: driverId,
                   price: widget.price ?? "N/A",
+                  rideId: rideRequestId,
                 ),
               ),
             );

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Ensure you have Firestore dependencies
 import 'package:gomatch/components/side_drawer/side_menu.dart';
 import 'package:gomatch/providers/receipt.dart';
 import 'package:gomatch/utils/colors.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaymentScreen extends StatefulWidget {
   static const String idScreen = "PaymentScreen";
   final String price;
-  PaymentScreen({super.key, required this.price});
+  final String? driverId;
+  final String? rideId;
+  PaymentScreen({super.key, required this.price, this.driverId, this.rideId});
 
   @override
   _PaymentScreenState createState() => _PaymentScreenState();
@@ -16,8 +18,11 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   bool isSideMenuClosed = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int receiptNumber = 0;
 
+  // Firestore instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Show payment options
   void _showPaymentOptions(BuildContext context) {
     showDialog(
       context: context,
@@ -30,33 +35,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontFamily: "Brand-Bold",
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                title: const Text('JazzCash'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _processJazzCashPayment();
-                },
-              ),
-              ListTile(
-                title: const Text('EasyPaisa'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _processEasyPaisaPayment();
-                },
-              ),
-            ],
-          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('JazzCash'),
+              onPressed: () {
+                // _storeReceiptDetails('JazzCash');
+                Navigator.of(context).pop();
+                _processPayment('JazzCash');
+              },
+            ),
+            TextButton(
+              child: const Text('EasyPaisa'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _processPayment('EasyPaisa');
+              },
+            ),
+          ],
         );
       },
     );
   }
 
-  void _processJazzCashPayment() async {
-    // Implement JazzCash payment logic here
-    fetchData();
+  // Handle payment processing
+  void _processPayment(String paymentMethod) async {
+    // Simulate a successful payment process
+    await _storeReceiptDetails(paymentMethod);
+    print('Payment successful');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -68,33 +73,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontFamily: "Brand-Bold",
             ),
           ),
-          content: const Text(
-            'Your payment through JazzCash was successful. & your ride has been confirmed.',
-            style: TextStyle(
+          content: Text(
+            'Your payment through $paymentMethod was successful. Your ride has been confirmed.',
+            style: const TextStyle(
               fontFamily: "Brand-Regular",
             ),
           ),
           actions: <Widget>[
             TextButton(
+              child: const Text('Show Receipt',
+                  style: TextStyle(color: AppColors.primaryColor)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                // final ride =
+                //     await _firestore.collection('receipt').doc("1234").get();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ReceiptScreen(
+                    date: (DateTime.now()).toString(),
+                    // receiptNumber: 1234,
+                    amount: widget.price,
+                    paymentMethod: paymentMethod,
+                  ),
+                ));
+              },
+            ),
+            TextButton(
               child: const Text('OK',
                   style: TextStyle(color: AppColors.primaryColor)),
               onPressed: () {
                 Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Show Receipt',
-                  style: TextStyle(color: AppColors.primaryColor)),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ReceiptScreen(
-                        receiptNumber: receiptNumber,
-                        date: "12/12/2021",
-                        amount: widget.price,
-                        paymentMethod: "JazzCash"),
-                  ),
-                );
               },
             ),
           ],
@@ -103,77 +110,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  void _processEasyPaisaPayment() {
-    // Implement EasyPaisa payment logic here
-    fetchData();
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Payment Successful',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontFamily: "Brand-Bold",
-            ),
-          ),
-          content: const Text(
-            'Your payment through EasyPaisa was successful. & Your ride has been confirmed.',
-            style: TextStyle(
-              fontFamily: "Brand-Regular",
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK',
-                  style: TextStyle(color: AppColors.primaryColor)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Show Receipt',
-                  style: TextStyle(color: AppColors.primaryColor)),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ReceiptScreen(
-                        receiptNumber: receiptNumber,
-                        date: "12/12/2021",
-                        amount: widget.price,
-                        paymentMethod: "EasyPaisa"),
-                  ),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void fetchData() async {
-    // Fetch data from Firestore
-    DocumentSnapshot receipt = await FirebaseFirestore.instance
-        .collection('receipt')
-        .doc('1234')
-        .get();
-
-    if (receipt.exists) {
-      // Process the receipt data
-      // int currentReceiptNumber = int.parse(receipt['number']);
-      receiptNumber = receipt['number'];
-      // Update the receipt number in Firestore
-      await FirebaseFirestore.instance
-          .collection('receipt')
-          .doc('1234')
-          .update({'number': (receiptNumber + 1)});
-      debugPrint('Receipt Data: ${receipt.data()}');
-    } else {
-      debugPrint('No such document!');
+  // Store receipt details in Firestore
+  Future<void> _storeReceiptDetails(String paymentMethod) async {
+    print('PRICE : ${widget.price}');
+    if (widget.rideId != null && widget.driverId != null) {
+      try {
+        final ride = await _firestore.collection('receipt').doc('1234').get();
+        // Store receipt details in ride_requests
+        await FirebaseFirestore.instance
+            .collection('driver_profile')
+            .doc(widget.driverId)
+            .collection('ride_requests')
+            .doc(widget.rideId)
+            .update({
+          'paymentStatus': 'Completed',
+          'paymentAmount': widget.price,
+          'paymentMethod': paymentMethod,
+          'paymentDate': DateTime.now(),
+          'receiptNumber': ride['number'],
+        });
+        print('Receipt details stored successfully');
+      } catch (e) {
+        print("Error storing receipt details: $e");
+      }
     }
-
-    if (!mounted) return;
   }
 
   @override
@@ -236,7 +196,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           children: [
                             const Center(
                               child: Text(
-                                "Thankyou for choosing GoMatch!",
+                                "Thank you for choosing GoMatch!",
                                 style: TextStyle(
                                   fontSize: 20.0,
                                   fontFamily: "Brand-Bold",
@@ -259,7 +219,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                         const SizedBox(height: 10.0),
                         Text(
-                          "Payment : \$${widget.price}",
+                          "Payment: \$${widget.price}",
                           style: TextStyle(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,
@@ -305,52 +265,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 16.0),
-                      // Row(
-                      //   children: [
-                      //     Expanded(
-                      //       child: TextField(
-                      //         decoration: InputDecoration(
-                      //           labelText: 'Expiry Date',
-                      //           border: OutlineInputBorder(),
-                      //           prefixIcon: Icon(Icons.date_range),
-                      //           labelStyle:
-                      //               TextStyle(color: AppColors.primaryColor),
-                      //           enabledBorder: OutlineInputBorder(
-                      //             borderSide: BorderSide(
-                      //                 color: AppColors.secondaryColor),
-                      //           ),
-                      //           focusedBorder: OutlineInputBorder(
-                      //             borderSide: BorderSide(
-                      //                 color: AppColors.secondaryColor),
-                      //           ),
-                      //         ),
-                      //         keyboardType: TextInputType.datetime,
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 10.0),
-                      //     Expanded(
-                      //       child: TextField(
-                      //         decoration: InputDecoration(
-                      //           labelText: 'CVV',
-                      //           border: OutlineInputBorder(),
-                      //           prefixIcon: Icon(Icons.lock),
-                      //           labelStyle:
-                      //               TextStyle(color: AppColors.primaryColor),
-                      //           enabledBorder: OutlineInputBorder(
-                      //             borderSide: BorderSide(
-                      //                 color: AppColors.secondaryColor),
-                      //           ),
-                      //           focusedBorder: OutlineInputBorder(
-                      //             borderSide: BorderSide(
-                      //                 color: AppColors.secondaryColor),
-                      //           ),
-                      //         ),
-                      //         keyboardType: TextInputType.number,
-                      //         obscureText: true,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
                       const SizedBox(height: 20.0),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(

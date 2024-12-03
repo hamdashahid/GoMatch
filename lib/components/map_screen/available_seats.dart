@@ -7,9 +7,10 @@ import 'package:gomatch/utils/colors.dart';
 class AvailableSeatsScreen extends StatefulWidget {
   final String? driverUid;
   final String? price;
+  final String? rideId;
   static const String idScreen = "AvailableSeats";
 
-  AvailableSeatsScreen({super.key, this.driverUid, this.price});
+  AvailableSeatsScreen({super.key, this.driverUid, this.price, this.rideId});
 
   @override
   _AvailableSeatsState createState() => _AvailableSeatsState();
@@ -20,7 +21,8 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
   List<String> bookedSeats = [];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isSideMenuClosed = true;
-
+  int receiptNumber = 0;
+  // String ride = "ride";
   @override
   void initState() {
     super.initState();
@@ -186,12 +188,15 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
           // Handle the done button press
           // Navigator.pop(context);
           // Navigator.pushNamed(context, 'PaymentScreen');
+
           Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => PaymentScreen(
                   // driverUid: widget.driverUid,
                   price: widget.price!,
+                  rideId: widget.rideId!,
+                  driverId: widget.driverUid!,
                   // selectedCar: cars[index],
                   // price: car['price'] ?? "N/A",
                 ),
@@ -253,6 +258,30 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         SnackBar(content: Text('Error fetching driver data: $e')),
       );
     }
+  }
+
+  void fetchData() async {
+    // Fetch data from Firestore
+    DocumentSnapshot receipt = await FirebaseFirestore.instance
+        .collection('receipt')
+        .doc('1234')
+        .get();
+
+    if (receipt.exists) {
+      // Process the receipt data
+      // int currentReceiptNumber = int.parse(receipt['number']);
+      receiptNumber = receipt['number'];
+      // Update the receipt number in Firestore
+      await FirebaseFirestore.instance
+          .collection('receipt')
+          .doc('1234')
+          .update({'number': (receiptNumber + 1)});
+      debugPrint('Receipt Data: ${receipt.data()}');
+    } else {
+      debugPrint('No such document!');
+    }
+
+    if (!mounted) return;
   }
 
   // Function to show the bottom sheet of Car Button
@@ -451,19 +480,7 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
     );
   }
 
-  Future<void> createRideRequest(
-      String userId, String driverId, Map<String, dynamic> rideDetails) async {
-    final rideId = FirebaseFirestore.instance.collection('rides').doc().id;
-    await FirebaseFirestore.instance.collection('rides').doc(rideId).set({
-      'userId': userId,
-      'driverId': driverId,
-      'status': 'pending',
-      'pickupLocation': rideDetails['pickupLocation'],
-      'dropoffLocation': rideDetails['dropoffLocation'],
-      'price': rideDetails['price'],
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
+
 }
 
 class GenderDialog extends StatelessWidget {

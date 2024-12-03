@@ -4,6 +4,7 @@ import 'package:gomatch/components/driver_side_drawer/driver_side_menu_tile.dart
 import 'package:gomatch/screens/driver_dashboard.dart';
 import 'package:gomatch/screens/driver_history_screen.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
+import 'package:gomatch/screens/driver_payments_screen.dart';
 import 'package:gomatch/screens/driver_profile_screen.dart';
 import 'package:gomatch/screens/driver_settings_screen.dart';
 // import 'package:gomatch/screens/driver_mode_screen.dart';
@@ -76,6 +77,10 @@ class _SideMenuState extends State<DriverSideMenu> {
                               Navigator.pushNamed(
                                   context, RideRequestScreen.idScreen);
                               break;
+                            case "Payments":
+                              Navigator.pushNamed(
+                                  context, DriverPaymentsScreen.idScreen);
+                              break;  
                             case "Dashboard":
                               Navigator.pushNamed(
                                   context, DriverDashboardScreen.idScreen);
