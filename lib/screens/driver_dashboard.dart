@@ -49,7 +49,28 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final List<String> vehicleNames = [
+    'Toyota Corolla',
+    'Honda Civic',
+    'Suzuki Alto',
+    'Suzuki Cultus',
+    'Toyota Yaris',
+    'Honda City',
+    'Suzuki Wagon R',
+  ]; // Hardcoded suggestions for Vehicle Name
 
+  final List<String> vehicleModels = [
+    '2015',
+    '2016',
+    '2017',
+    '2018',
+    '2019',
+    '2020',
+    '2021',
+    '2022',
+    '2023',
+    '2024',
+  ];
   User? user;
 
   void showBottomSheet(BuildContext context, String title, Widget content) {
@@ -521,7 +542,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Dashboard tiles with bottom sheets
                 DashboardTile(
                   icon: Icons.verified,
                   title: 'Verification',
@@ -534,11 +554,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         key: _formKey,
                         child: Column(
                           children: [
+                            // CNIC Number Field
                             TextFormField(
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'XXXXX-XXXXXXX-X',
                                 labelText: 'Enter Cnic Number',
                                 border: OutlineInputBorder(),
+                                suffixIcon: cnicController.text.isEmpty
+                                    ? Icon(Icons.error, color: Colors.red)
+                                    : Icon(Icons.check, color: Colors.green),
                               ),
                               inputFormatters: [
                                 MaskedInputFormatter(
@@ -557,11 +581,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               },
                             ),
                             const SizedBox(height: 20),
+
+                            // Driving License Number Field
                             TextFormField(
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'XXXXX',
                                 labelText: 'Enter Driving License Number',
                                 border: OutlineInputBorder(),
+                                suffixIcon: licenseController.text.isEmpty
+                                    ? Icon(Icons.error, color: Colors.red)
+                                    : Icon(Icons.check, color: Colors.green),
                               ),
                               keyboardType: TextInputType.number,
                               inputFormatters: [
@@ -583,6 +612,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   },
                 ),
+
                 DashboardTile(
                   icon: Icons.directions_car,
                   title: 'Registration',
@@ -595,16 +625,18 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         key: _formKey,
                         child: Column(
                           children: [
+                            // Vehicle Number Field
                             TextFormField(
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'XXX-0000',
                                 labelText: 'Vehicle Number',
                                 border: OutlineInputBorder(),
+                                suffixIcon: vehicleNumberController.text.isEmpty
+                                    ? Icon(Icons.error, color: Colors.red)
+                                    : Icon(Icons.check, color: Colors.green),
                               ),
                               inputFormatters: [
                                 MaskedInputFormatter('###-0000'),
-                                // MaskedTextInputFormatter(
-                                //     mask: '###-0000'), // Custom formatter
                               ],
                               controller: vehicleNumberController,
                               onChanged: (value) {
@@ -612,28 +644,58 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               },
                             ),
                             const SizedBox(height: 10),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Vehicle Model',
-                                hintText: 'XXXX',
-                                border: OutlineInputBorder(),
-                              ),
-                              inputFormatters: [
-                                MaskedInputFormatter(
-                                    '####'), // Vehicle model format
-                              ],
-                              keyboardType: TextInputType.number,
-                              controller: vehicleModelController,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your vehicle model';
-                                } else if (value.length != 4) {
-                                  return 'Enter a valid vehicle model (XXXX)';
+
+                            // Vehicle Model Field with Autocomplete
+                            Autocomplete<String>(
+                              optionsBuilder:
+                                  (TextEditingValue textEditingValue) {
+                                if (textEditingValue.text.isEmpty) {
+                                  return const Iterable<String>.empty();
                                 }
-                                return null;
+                                return vehicleModels.where((String option) {
+                                  return option.contains(textEditingValue.text);
+                                });
+                              },
+                              onSelected: (String selection) {
+                                vehicleModelController.text = selection;
+                                print('Selected Vehicle Model: $selection');
+                              },
+                              fieldViewBuilder: (BuildContext context,
+                                  TextEditingController textEditingController,
+                                  FocusNode focusNode,
+                                  VoidCallback onFieldSubmitted) {
+                                return TextFormField(
+                                  controller: textEditingController,
+                                  focusNode: focusNode,
+                                  decoration: InputDecoration(
+                                    labelText: 'Vehicle Model',
+                                    hintText: 'XXXX',
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: textEditingController
+                                            .text.isEmpty
+                                        ? Icon(Icons.error, color: Colors.red)
+                                        : Icon(Icons.check,
+                                            color: Colors.green),
+                                  ),
+                                  inputFormatters: [
+                                    MaskedInputFormatter(
+                                        '####'), // Vehicle model format
+                                  ],
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your vehicle model';
+                                    } else if (value.length != 4) {
+                                      return 'Enter a valid vehicle model (XXXX)';
+                                    }
+                                    return null;
+                                  },
+                                );
                               },
                             ),
                             const SizedBox(height: 10),
+
+                            // Vehicle Color Field
                             TextFormField(
                               decoration: const InputDecoration(
                                 labelText: 'Vehicle Color',
@@ -687,25 +749,59 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               },
                             ),
                             const SizedBox(height: 10),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Vehicle Name',
-                                border: OutlineInputBorder(),
-                              ),
-                              controller: vehicleNameController,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your vehicle name';
+
+                            // Vehicle Name Field with Autocomplete
+                            Autocomplete<String>(
+                              optionsBuilder:
+                                  (TextEditingValue textEditingValue) {
+                                if (textEditingValue.text.isEmpty) {
+                                  return const Iterable<String>.empty();
                                 }
-                                return null;
+                                return vehicleNames.where((String option) {
+                                  return option.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                                });
+                              },
+                              onSelected: (String selection) {
+                                vehicleNameController.text = selection;
+                                print('Selected Vehicle Name: $selection');
+                              },
+                              fieldViewBuilder: (BuildContext context,
+                                  TextEditingController textEditingController,
+                                  FocusNode focusNode,
+                                  VoidCallback onFieldSubmitted) {
+                                return TextFormField(
+                                  controller: textEditingController,
+                                  focusNode: focusNode,
+                                  decoration: InputDecoration(
+                                    labelText: 'Vehicle Name',
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: textEditingController
+                                            .text.isEmpty
+                                        ? Icon(Icons.error, color: Colors.red)
+                                        : Icon(Icons.check,
+                                            color: Colors.green),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your vehicle name';
+                                    }
+                                    return null;
+                                  },
+                                );
                               },
                             ),
                             const SizedBox(height: 10),
+
+                            // Vehicle Seats Field
                             TextFormField(
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Total seats',
                                 border: OutlineInputBorder(),
                                 hintText: '00',
+                                suffixIcon: vehicleSeatcontroller.text.isEmpty
+                                    ? Icon(Icons.error, color: Colors.red)
+                                    : Icon(Icons.check, color: Colors.green),
                               ),
                               keyboardType: TextInputType.number,
                               inputFormatters: [
@@ -728,6 +824,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   },
                 ),
+
                 DashboardTile(
                   icon: Icons.location_on,
                   title: 'Routes',
@@ -791,9 +888,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                             TextFormField(
                                               controller:
                                                   startLocationController,
-                                              decoration: const InputDecoration(
+                                              decoration: InputDecoration(
                                                 labelText:
                                                     "Enter Pickup Location",
+                                                suffixIcon:
+                                                    startLocationController
+                                                            .text.isEmpty
+                                                        ? Icon(Icons.error,
+                                                            color: Colors.red)
+                                                        : Icon(Icons.check,
+                                                            color:
+                                                                Colors.green),
                                               ),
                                             ),
                                             const SizedBox(height: 10),
@@ -859,8 +964,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                             ),
                                             TextFormField(
                                               controller: endLocationController,
-                                              decoration: const InputDecoration(
+                                              decoration: InputDecoration(
                                                 labelText: "Enter End Location",
+                                                suffixIcon:
+                                                    endLocationController
+                                                            .text.isEmpty
+                                                        ? Icon(
+                                                            Icons.error,
+                                                            color: Colors.red)
+                                                        : Icon(Icons.check,
+                                                            color:
+                                                                Colors.green),
                                               ),
                                             ),
                                             const SizedBox(height: 10),
@@ -920,8 +1034,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                             const SizedBox(height: 10),
                                             TextField(
                                               controller: priceController,
-                                              decoration: const InputDecoration(
+                                              decoration: InputDecoration(
                                                 labelText: "Price for trip",
+                                                suffixIcon: priceController
+                                                        .text.isEmpty
+                                                    ? Icon(Icons.error,
+                                                        color: Colors.red)
+                                                    : Icon(Icons.check,
+                                                        color: Colors.green),
                                               ),
                                               keyboardType: TextInputType
                                                   .numberWithOptions(
@@ -962,6 +1082,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                               InputDecoration(
                                                             labelText:
                                                                 "Stop ${index + 1} Name",
+                                                            suffixIcon: stops[index]
+                                                                            [
+                                                                            "name"]
+                                                                        ?.text
+                                                                        .isEmpty ??
+                                                                    true
+                                                                ? Icon(
+                                                                    Icons.error,
+                                                                    color: Colors
+                                                                        .red)
+                                                                : Icon(
+                                                                    Icons.check,
+                                                                    color: Colors
+                                                                        .green),
                                                           ),
                                                         ),
                                                         const SizedBox(
@@ -974,6 +1108,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                                               InputDecoration(
                                                             labelText:
                                                                 "Stop ${index + 1} Price",
+                                                            suffixIcon: stops[index]
+                                                                            [
+                                                                            "stop_price"]
+                                                                        ?.text
+                                                                        .isEmpty ??
+                                                                    true
+                                                                ? Icon(
+                                                                    Icons.error,
+                                                                    color: Colors
+                                                                        .red)
+                                                                : Icon(
+                                                                    Icons.check,
+                                                                    color: Colors
+                                                                        .green),
                                                           ),
                                                         ),
                                                         TextField(
@@ -1137,6 +1285,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   },
                 ),
+
                 DashboardTile(
                   icon: Icons.stop_outlined,
                   title: 'Stops List',
