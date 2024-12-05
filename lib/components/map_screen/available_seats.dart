@@ -171,7 +171,7 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    seatStatus.isEmpty ? 'Available' : 'Booked',
+                    seatStatus.isEmpty ? 'Available' : 'Reserved',
                     style: TextStyle(
                       fontSize: 14.0,
                       color: seatStatus.isEmpty ? Colors.green : Colors.red,

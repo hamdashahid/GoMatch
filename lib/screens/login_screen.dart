@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController();
   final TextEditingController passwordTextEditingController =
       TextEditingController();
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -63,24 +64,61 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 1.0),
-                    TextField(
-                      controller: passwordTextEditingController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "Password",
-                        labelStyle: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.white,
-                        ),
-                        hintStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10.0,
-                        ),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.white,
-                      ),
+                    // TextField(
+                    //   controller: passwordTextEditingController,
+                    //   obscureText: true,
+                    //   decoration: const InputDecoration(
+                    //     labelText: "Password",
+                    //     labelStyle: TextStyle(
+                    //       fontSize: 16.0,
+                    //       color: Colors.white,
+                    //     ),
+                    //     hintStyle: TextStyle(
+                    //       color: Colors.white,
+                    //       fontSize: 10.0,
+                    //     ),
+                    //   ),
+                    //   style: const TextStyle(
+                    //     fontSize: 16.0,
+                    //     color: Colors.white,
+                    //   ),
+                    // ),
+                    const SizedBox(height: 1.0),
+                    StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setState) {
+                        return TextField(
+                          controller: passwordTextEditingController,
+                          obscureText: _obscureText,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            labelStyle: const TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.white,
+                            ),
+                            hintStyle: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.0,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 15.0),
                     ElevatedButton(

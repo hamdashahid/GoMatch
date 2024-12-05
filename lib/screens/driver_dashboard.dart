@@ -1,10 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:gomatch/components/driver_dashboard_screen/dashboard_tile.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:colornames/colornames.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   static const String idScreen = "DriverDashboardScreen";
@@ -14,15 +19,22 @@ class DriverDashboardScreen extends StatefulWidget {
 }
 
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
-  TextEditingController cnicController = TextEditingController();
-  TextEditingController licenseController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  // TextEditingController cnicController = TextEditingController();
+  MaskedTextController cnicController =
+      MaskedTextController(mask: '00000-0000000-0');
+  // TextEditingController licenseController = TextEditingController();
+  TextEditingController licenseController = MaskedTextController(mask: '00000');
+  TextEditingController vehicleModelController =
+      MaskedTextController(mask: '0000');
+
   TextEditingController vehicleNumberController = TextEditingController();
-  TextEditingController vehicleModelController = TextEditingController();
   TextEditingController vehicleColorController = TextEditingController();
   TextEditingController vehicleNameController = TextEditingController();
   TextEditingController startLocationController = TextEditingController();
   TextEditingController endLocationController = TextEditingController();
-  TextEditingController vehicleSeatcontroller = TextEditingController();
+  TextEditingController vehicleSeatcontroller =
+      MaskedTextController(mask: '0000');
   // final TextEditingController startLocationController = TextEditingController();
   final TextEditingController startPickupTimeController =
       TextEditingController();
@@ -87,18 +99,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     ),
                     onPressed: () {
-                      saveDriverProfile(context, title);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '$title data stored successfully!',
-                            style:
-                                const TextStyle(color: AppColors.primaryColor),
+                      if (_formKey.currentState?.validate() ?? false) {
+                        saveDriverProfile(context, title);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '$title data stored successfully!',
+                              style: const TextStyle(
+                                  color: AppColors.primaryColor),
+                            ),
+                            backgroundColor: AppColors.secondaryColor,
                           ),
-                          backgroundColor: AppColors.secondaryColor,
-                        ),
-                      );
-                      Navigator.pop(context); // Close the bottom sheet
+                        );
+                        Navigator.pop(context); // Close the bottom sheet
+                      }
                     },
                     child: const Text(
                       "Submit",
@@ -516,29 +530,59 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     showBottomSheet(
                       context,
                       "Verification",
-                      Column(
-                        children: [
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Enter Cnic Number',
-                              border: OutlineInputBorder(),
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                hintText: 'XXXXX-XXXXXXX-X',
+                                labelText: 'Enter Cnic Number',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                MaskedInputFormatter(
+                                    '#####-#######-#'), // CNIC format
+                              ],
+                              keyboardType: TextInputType.number,
+                              controller: cnicController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your CNIC';
+                                } else if (value.replaceAll('-', '').length !=
+                                    13) {
+                                  return 'Enter a valid CNIC (XXXXX-XXXXXXX-X)';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: cnicController,
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Enter Driving License Number',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                hintText: 'XXXXX',
+                                labelText: 'Enter Driving License Number',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                MaskedInputFormatter('#####'), // LICENSE format
+                              ],
+                              controller: licenseController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your license number';
+                                } else if (value.length != 5) {
+                                  return 'Enter a valid license number (XXXXX)';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: licenseController,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
                 ),
-
                 DashboardTile(
                   icon: Icons.directions_car,
                   title: 'Registration',
@@ -547,48 +591,139 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     showBottomSheet(
                       context,
                       "Vehicle Registration",
-                      Column(
-                        children: [
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Vehicle Number',
-                              border: OutlineInputBorder(),
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                hintText: 'XXX-0000',
+                                labelText: 'Vehicle Number',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                MaskedInputFormatter('###-0000'),
+                                // MaskedTextInputFormatter(
+                                //     mask: '###-0000'), // Custom formatter
+                              ],
+                              controller: vehicleNumberController,
+                              onChanged: (value) {
+                                print(value); // Debugging the entered value
+                              },
                             ),
-                            controller: vehicleNumberController,
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Vehicle Model',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Vehicle Model',
+                                hintText: 'XXXX',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                MaskedInputFormatter(
+                                    '####'), // Vehicle model format
+                              ],
+                              keyboardType: TextInputType.number,
+                              controller: vehicleModelController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your vehicle model';
+                                } else if (value.length != 4) {
+                                  return 'Enter a valid vehicle model (XXXX)';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: vehicleModelController,
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Vehicle Color',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Vehicle Color',
+                                border: OutlineInputBorder(),
+                                suffixText: 'Select Color',
+                                suffixStyle: TextStyle(
+                                  color: AppColors.secondaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              controller: vehicleColorController,
+                              onTap: () async {
+                                Color? pickedColor = await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    Color tempColor = Colors.white;
+                                    return AlertDialog(
+                                      title: const Text('Pick a color'),
+                                      content: SingleChildScrollView(
+                                        child: BlockPicker(
+                                          pickerColor: tempColor,
+                                          onColorChanged: (color) {
+                                            tempColor = color;
+                                          },
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: const Text('Select'),
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(tempColor);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                if (pickedColor != null) {
+                                  setState(() {
+                                    vehicleColorController.text =
+                                        ColorNames.guess(pickedColor);
+                                  });
+                                }
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select your vehicle color';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: vehicleColorController,
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Vehicle Name',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Vehicle Name',
+                                border: OutlineInputBorder(),
+                              ),
+                              controller: vehicleNameController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your vehicle name';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: vehicleNameController,
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Total seats',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Total seats',
+                                border: OutlineInputBorder(),
+                                hintText: '00',
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                MaskedInputFormatter(
+                                    '00'), // Total seats format
+                              ],
+                              controller: vehicleSeatcontroller,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the total number of seats';
+                                } else if (value.length != 2) {
+                                  return 'Enter a valid number of seats (00)';
+                                }
+                                return null;
+                              },
                             ),
-                            controller: vehicleSeatcontroller,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1097,7 +1232,94 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   },
                 ),
-                // Additional content...
+                DashboardTile(
+                  icon: Icons.event_seat,
+                  title: 'Seats View',
+                  subtitle: 'View available and booked seats',
+                  onTap: () {
+                    showBottomSheet(
+                      context,
+                      "Seats View",
+                      FutureBuilder<DocumentSnapshot>(
+                        future: _firestore
+                            .collection('driver_profile')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .get(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError) {
+                            return const Center(
+                                child: Text("Error fetching seats data"));
+                          }
+                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                            return const Center(
+                                child: Text("No seats data found"));
+                          }
+
+                          var seatsData =
+                              snapshot.data!.data() as Map<String, dynamic>;
+                          var totalSeats = seatsData['vehicleSeat'] ?? 0;
+                          var availableSeats =
+                              seatsData['available_seats'] ?? 0;
+                          var bookedSeats =
+                              seatsData['booked_seats'] as List<dynamic>? ?? [];
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4, // Number of columns
+                              crossAxisSpacing: 10.0,
+                              mainAxisSpacing: 10.0,
+                            ),
+                            itemCount: totalSeats,
+                            itemBuilder: (context, index) {
+                              bool isBooked = index < bookedSeats.length;
+                              String seatImage;
+                              Color? seatColor;
+                              if (isBooked) {
+                                String gender = bookedSeats[index];
+                                seatImage = gender == 'female'
+                                    ? 'assets/woman.png'
+                                    : gender == 'male'
+                                        ? 'assets/man.png'
+                                        : 'assets/seat.png';
+                                seatColor = gender == 'female'
+                                    ? Colors.pink
+                                    : gender == 'male'
+                                        ? const Color.fromARGB(255, 0, 61, 110)
+                                        : Colors.black; // Change
+                              } else {
+                                seatImage = 'assets/seat.png';
+                              }
+                              return Column(
+                                children: [
+                                  Image.asset(
+                                    seatImage,
+                                    color: seatColor,
+                                    width: 50,
+                                    height: 50,
+                                  ),
+                                  Text(
+                                    'Seat ${index + 1}',
+                                    style: const TextStyle(
+                                      fontSize: 14.0,
+                                      color: AppColors.secondaryColor,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),

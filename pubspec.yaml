@@ -33,6 +33,10 @@ dependencies:
   image_picker: ^1.1.2
   firebase_messaging: ^15.1.5
   intl: ^0.20.1
+  flutter_masked_text2: ^0.9.1
+  flutter_multi_formatter: ^2.13.0
+  flutter_colorpicker: ^1.1.0
+  colornames: ^0.2.0
 
 
 

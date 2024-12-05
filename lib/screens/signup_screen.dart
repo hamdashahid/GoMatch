@@ -105,6 +105,7 @@ class SignupScreen extends StatelessWidget {
       TextEditingController();
   final TextEditingController passwordTextEditingController =
       TextEditingController();
+  bool _obscureText = true;
 
   void _showAccountTypeDialog(BuildContext context) {
     showDialog(
@@ -195,10 +196,46 @@ class SignupScreen extends StatelessWidget {
                       labelText: "Phone",
                       keyboardType: TextInputType.phone,
                     ),
-                    SignupTextField(
-                      controller: passwordTextEditingController,
-                      labelText: "Password",
-                      isPassword: true,
+                    // SignupTextField(
+                    //   controller: passwordTextEditingController,
+                    //   labelText: "Password",
+                    //   isPassword: true,
+                    // ),
+                    StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setState) {
+                        return TextField(
+                          controller: passwordTextEditingController,
+                          obscureText: _obscureText,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            labelStyle: const TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.white,
+                            ),
+                            hintStyle: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.0,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 20.0),
                     ElevatedButton(
