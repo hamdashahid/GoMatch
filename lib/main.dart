@@ -31,7 +31,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  // FirebaseMessaging messaging = FirebaseMessaging.instance;
+
   runApp(const MyApp());
 }
 

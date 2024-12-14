@@ -105,7 +105,7 @@ class ReceiptScreen extends StatelessWidget {
                           Divider(),
                           buildReceiptDetail(Icons.receipt_long,
                               'Receipt Number', receipt.toString()),
-                          buildReceiptDetail(Icons.date_range, 'Date', date),
+                          buildReceiptDetail(Icons.date_range, 'Date & Time', date),
                           buildReceiptDetail(
                               Icons.attach_money, 'Amount', amount),
                           buildReceiptDetail(

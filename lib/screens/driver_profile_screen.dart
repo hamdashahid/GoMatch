@@ -57,7 +57,7 @@ class _ProfileScreenState extends State<DriverProfileScreen> {
     });
 
     try {
-      await _firestore.collection('passenger_profile').doc(user?.uid).update({
+      await _firestore.collection('driver_profile').doc(user?.uid).update({
         'name': nameController.text,
         'phone': phoneController.text,
         // 'email': emailController.text,

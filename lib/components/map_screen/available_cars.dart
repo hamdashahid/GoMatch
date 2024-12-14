@@ -264,8 +264,9 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
                   malePassengers: 0, // Replace with actual data
                   femalePassengers: 0, // Replace with actual data
                   available: /*car['vehicleSeat'] - car['booked_seats'].length ??*/
-                      car['available_seats'] ??
-                          10, // Replace with actual data for available seats
+                      (car['available_seats'] ?? 0) + 1
+                          ?? 
+                           10, // Replace with actual data for available seats
                   price: car['price'] ?? "N/A", // Display price
                   selectedCarIndex: index == selectedCarIndex ? index : null,
                   onCardTap: (index) {

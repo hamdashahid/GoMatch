@@ -40,14 +40,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: const Text('JazzCash'),
               onPressed: () {
                 // _storeReceiptDetails('JazzCash');
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
                 _processPayment('JazzCash');
               },
             ),
             TextButton(
               child: const Text('EasyPaisa'),
               onPressed: () {
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
                 _processPayment('EasyPaisa');
               },
             ),
@@ -61,6 +61,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void _processPayment(String paymentMethod) async {
     // Simulate a successful payment process
     await _storeReceiptDetails(paymentMethod);
+    if (!mounted) return; // Ensure the widget is still mounted
+
     print('Payment successful');
     showDialog(
       context: context,
@@ -101,7 +103,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: const Text('OK',
                   style: TextStyle(color: AppColors.primaryColor)),
               onPressed: () {
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
               },
             ),
           ],
@@ -219,7 +221,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                         const SizedBox(height: 10.0),
                         Text(
-                          "Payment: \$${widget.price}",
+                          "Payment: Rs. ${widget.price}",
                           style: TextStyle(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,

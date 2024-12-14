@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gomatch/components/side_drawer/side_menu.dart';
@@ -62,6 +63,23 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
 
   void bookSeat(int index) async {
     try {
+      // Check if the user has already booked a seat
+      DocumentSnapshot userProfile = await FirebaseFirestore.instance
+          .collection('user_profile')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get();
+      if (userProfile.exists && userProfile.data() != null) {
+        Map<String, dynamic> userData =
+            userProfile.data() as Map<String, dynamic>;
+        if (userData['reserved_seat'] != null) {
+          // Notify user they already booked a seat
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("You have already reserved a seat.")),
+          );
+          return;
+        }
+      }
+
       // Show gender selection dialog
       String? gender = await showDialog<String>(
         context: context,
@@ -69,37 +87,44 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       );
 
       if (gender != null) {
-        // Fetch the driver's profile to check if 'booked_seats' exists
+        // Fetch the driver's profile
         DocumentSnapshot driverProfile = await FirebaseFirestore.instance
             .collection('driver_profile')
             .doc(widget.driverUid)
             .get();
-        driverProfile.reference
-            .update({'available_seats': totalSeats - bookedSeats.length});
-        // driverProfile.data()['available_seats'] = totalSeats - bookedSeats.length;
         List<String> existingBookedSeats = [];
         if (driverProfile.exists) {
-          // Safely access 'booked_seats' field
           existingBookedSeats = List<String>.from(
-              (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ??
-                  []);
+            (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ??
+                [],
+          );
         }
 
-        // Ensure the 'booked_seats' list is large enough to accommodate the index
+        // Ensure the list is large enough
         while (existingBookedSeats.length <= index) {
-          existingBookedSeats
-              .add(''); // Fill with empty strings if the index is out of bounds
+          existingBookedSeats.add('');
         }
 
         // Update the seat at the specified index
         existingBookedSeats[index] = gender;
 
-        // Update or create the 'booked_seats' field in Firestore
+        // Update Firestore for driver profile
         await FirebaseFirestore.instance
             .collection('driver_profile')
             .doc(widget.driverUid)
             .set(
-                {'booked_seats': existingBookedSeats}, SetOptions(merge: true));
+          {'booked_seats': existingBookedSeats},
+          SetOptions(merge: true),
+        );
+
+        // Update Firestore for user profile
+        await FirebaseFirestore.instance
+            .collection('user_profile')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .set({
+          'reserved_seat': index,
+          'ride_id': widget.rideId,
+        }, SetOptions(merge: true));
 
         // Update the local state
         setState(() {
@@ -479,8 +504,6 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       },
     );
   }
-
-
 }
 
 class GenderDialog extends StatelessWidget {

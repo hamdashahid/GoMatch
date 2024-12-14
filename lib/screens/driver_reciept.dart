@@ -68,7 +68,7 @@ class DriverReceiptScreen extends StatelessWidget {
                     // Details
                     buildReceiptDetail(Icons.receipt_long, 'Receipt Number',
                         receiptNumber.toString()),
-                    buildReceiptDetail(Icons.date_range, 'Date', date),
+                    buildReceiptDetail(Icons.date_range, 'Date & Time', date),
                     buildReceiptDetail(Icons.attach_money, 'Amount', amount),
                     buildReceiptDetail(
                         Icons.payment, 'Payment Method', paymentMethod),
