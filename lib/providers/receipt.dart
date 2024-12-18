@@ -107,7 +107,7 @@ class ReceiptScreen extends StatelessWidget {
                               'Receipt Number', receipt.toString()),
                           buildReceiptDetail(Icons.date_range, 'Date & Time', date),
                           buildReceiptDetail(
-                              Icons.attach_money, 'Amount', amount),
+                                  Icons.money_sharp, 'Amount Rs.', amount),
                           buildReceiptDetail(
                               Icons.payment, 'Payment Method', paymentMethod),
                         ],

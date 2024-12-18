@@ -546,6 +546,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   icon: Icons.verified,
                   title: 'Verification',
                   subtitle: 'Verify yourself',
+                  borderColor: cnicController.text.isEmpty ||
+                          licenseController.text.isEmpty
+                      ? Colors.red
+                      : Colors.green,
                   onTap: () {
                     showBottomSheet(
                       context,
@@ -617,6 +621,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   icon: Icons.directions_car,
                   title: 'Registration',
                   subtitle: 'Register your vehicle',
+                  borderColor: vehicleNumberController.text.isEmpty ||
+                          vehicleModelController.text.isEmpty ||
+                          vehicleColorController.text.isEmpty ||
+                          vehicleNameController.text.isEmpty ||
+                          vehicleSeatcontroller.text.isEmpty
+                      ? Colors.red
+                      : Colors.green,
                   onTap: () {
                     showBottomSheet(
                       context,
@@ -829,6 +840,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   icon: Icons.location_on,
                   title: 'Routes',
                   subtitle: 'Add your route details',
+                  borderColor: startLocationController.text.isEmpty ||
+                          startPickupTimeController.text.isEmpty ||
+                          endLocationController.text.isEmpty ||
+                          endPickupTimeController.text.isEmpty ||
+                          priceController.text.isEmpty
+                      ? Colors.red
+                      : Colors.green,
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
@@ -1290,6 +1308,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   icon: Icons.stop_outlined,
                   title: 'Stops List',
                   subtitle: 'View your stops list',
+                  borderColor: Colors.green,
                   onTap: () {
                     showBottomSheet(
                       context,
@@ -1385,6 +1404,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   icon: Icons.event_seat,
                   title: 'Seats View',
                   subtitle: 'View available and booked seats',
+                  borderColor: Colors.green,
                   onTap: () {
                     showBottomSheet(
                       context,

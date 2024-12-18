@@ -37,6 +37,8 @@ dependencies:
   flutter_multi_formatter: ^2.13.0
   flutter_colorpicker: ^1.1.0
   colornames: ^0.2.0
+  page_transition: ^2.1.0
+  rxdart: ^0.28.0
 
 
 
@@ -60,6 +62,7 @@ flutter:
         - asset: assets/fonts/bolt-semibold.ttf
 
   assets:
+    - assets/
     - assets/images/
     - assets/fonts/
     - assets/145.png

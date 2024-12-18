@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gomatch/admin_pannel.dart';
 import 'package:gomatch/screens/driver_mode_screen.dart';
 import 'package:gomatch/utils/colors.dart';
 import 'package:gomatch/screens/signup_screen.dart';
@@ -64,25 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 1.0),
-                    // TextField(
-                    //   controller: passwordTextEditingController,
-                    //   obscureText: true,
-                    //   decoration: const InputDecoration(
-                    //     labelText: "Password",
-                    //     labelStyle: TextStyle(
-                    //       fontSize: 16.0,
-                    //       color: Colors.white,
-                    //     ),
-                    //     hintStyle: TextStyle(
-                    //       color: Colors.white,
-                    //       fontSize: 10.0,
-                    //     ),
-                    //   ),
-                    //   style: const TextStyle(
-                    //     fontSize: 16.0,
-                    //     color: Colors.white,
-                    //   ),
-                    // ),
+                    
                     const SizedBox(height: 1.0),
                     StatefulBuilder(
                       builder: (BuildContext context, StateSetter setState) {
@@ -189,13 +172,14 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
+  
   void loginAndAuthenticateUser(BuildContext context) async {
     String email = emailTextEditingController.text.trim();
     String password = passwordTextEditingController.text.trim();
 
     try {
       // Sign in the user
+      
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -214,6 +198,11 @@ class _LoginScreenState extends State<LoginScreen> {
             .doc(user.uid)
             .get();
 
+        final adminDoc = await FirebaseFirestore.instance
+            .collection('admin')
+            .doc("1")
+            .get();
+
         // Wait for both futures to complete
         final List<DocumentSnapshot> results = await Future.wait([
           passengerProfileFuture,
@@ -229,6 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
               .collection('passenger_profile')
               .doc(user.uid)
               .update({'password': password});
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, HomeScreen.idScreen);
         } else if (driverDoc.exists) {
           // Navigate to driver dashboard
@@ -236,9 +226,16 @@ class _LoginScreenState extends State<LoginScreen> {
               .collection('driver_profile')
               .doc(user.uid)
               .update({'password': password});
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, DriverModeScreen.idScreen);
+        } else if (adminDoc.exists &&
+            adminDoc['email'] == email &&
+            adminDoc['password'] == password) {
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, AdminPanel.idScreen);
         } else {
           // Neither profile exists
+          if (!mounted) return;
           displayToastMessage(
             "Login failed: Account is not registered!!",
             context,
@@ -255,8 +252,10 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         errorMessage = "Login failed. Please try again.";
       }
+      if (!mounted) return;
       displayToastMessage(errorMessage, context);
     } catch (e) {
+      if (!mounted) return;
       displayToastMessage(
           "An error occurred. Please try again later.", context);
     }

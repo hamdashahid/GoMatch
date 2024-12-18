@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:gomatch/admin_pannel.dart';
 import 'package:gomatch/components/home_screen/search_screen.dart';
 import 'package:gomatch/components/map_screen/available_cars.dart';
 import 'package:gomatch/components/map_screen/available_seats.dart';
 import 'package:gomatch/providers/appData.dart';
 import 'package:gomatch/providers/receipt.dart';
+import 'package:gomatch/screens/Splash_screen.dart';
 import 'package:gomatch/screens/add_route_screen.dart';
 import 'package:gomatch/screens/driver_dashboard.dart';
 import 'package:gomatch/screens/driver_history_screen.dart';
@@ -58,7 +60,7 @@ class MyApp extends StatelessWidget {
             }
             if (snapshot.hasData) {
               // User is logged in, check Firestore collections
-              return FutureBuilder<bool>(
+              return FutureBuilder<String>(
                 future: _checkUserRole(snapshot.data!.email),
                 builder: (context, roleSnapshot) {
                   if (roleSnapshot.connectionState == ConnectionState.waiting) {
@@ -66,10 +68,19 @@ class MyApp extends StatelessWidget {
                   }
                   if (roleSnapshot.hasData) {
                     // Navigate based on user role
-                    if (roleSnapshot.data!) {
+                    if (roleSnapshot.data != null &&
+                        roleSnapshot.data == "driver") {
                       return DriverModeScreen(); // Redirect to driver mode
-                    } else {
+                    } else if (roleSnapshot.data != null &&
+                        roleSnapshot.data == "passenger") {
                       return HomeScreen(); // Redirect to passenger home screen
+                    } else if (roleSnapshot.data != null &&
+                        roleSnapshot.data == "admin") {
+                      return AdminPanel(); // Redirect to admin panel
+                    } else if (roleSnapshot.data != null &&
+                        roleSnapshot.data == "") {
+                      // return AdminPanel(); // Redirect to super admin panel
+                      return SplashScreen();
                     }
                   }
                   // Handle error or unknown case
@@ -79,7 +90,7 @@ class MyApp extends StatelessWidget {
               );
             } else {
               // User is not logged in
-              return LoginScreen();
+              return SplashScreen();
             }
           },
         ),
@@ -110,35 +121,42 @@ class MyApp extends StatelessWidget {
                 amount: '',
                 paymentMethod: '',
               ),
+          SplashScreen.idScreen: (context) => SplashScreen(),
+          AdminPanel.idScreen: (context) => AdminPanel(),
         },
       ),
     );
   }
 
   /// Check if the user is a driver or a passenger
-  Future<bool> _checkUserRole(String? email) async {
-    if (email == null) return false;
+  Future<String> _checkUserRole(String? email) async {
+    if (email == null) return ""; // Default to passenger
 
     final driverCollection =
         FirebaseFirestore.instance.collection('driver_profile');
     final passengerCollection =
         FirebaseFirestore.instance.collection('passenger_profile');
-
+    final adminCollection = FirebaseFirestore.instance.collection('admin');
     // Check if email exists in 'driver_profile'
     final driverSnapshot =
         await driverCollection.where('email', isEqualTo: email).get();
     if (driverSnapshot.docs.isNotEmpty) {
-      return true; // User is a driver
+      return "driver"; // User is a driver
     }
 
     // Check if email exists in 'passenger_profile'
     final passengerSnapshot =
         await passengerCollection.where('email', isEqualTo: email).get();
     if (passengerSnapshot.docs.isNotEmpty) {
-      return false; // User is a passenger
+      return "passenger"; // User is a passenger
+    }
+
+    final admin = await adminCollection.where('email', isEqualTo: email).get();
+    if (admin.docs.isNotEmpty) {
+      return "admin"; // User is an admin
     }
 
     // If not found in either collection, default to passenger
-    return false;
+    return "";
   }
 }

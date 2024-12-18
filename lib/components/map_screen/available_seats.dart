@@ -63,23 +63,6 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
 
   void bookSeat(int index) async {
     try {
-      // Check if the user has already booked a seat
-      DocumentSnapshot userProfile = await FirebaseFirestore.instance
-          .collection('user_profile')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .get();
-      if (userProfile.exists && userProfile.data() != null) {
-        Map<String, dynamic> userData =
-            userProfile.data() as Map<String, dynamic>;
-        if (userData['reserved_seat'] != null) {
-          // Notify user they already booked a seat
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("You have already reserved a seat.")),
-          );
-          return;
-        }
-      }
-
       // Show gender selection dialog
       String? gender = await showDialog<String>(
         context: context,
@@ -119,7 +102,7 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
 
         // Update Firestore for user profile
         await FirebaseFirestore.instance
-            .collection('user_profile')
+            .collection('passenger_profile')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .set({
           'reserved_seat': index,
@@ -142,7 +125,6 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      // drawer: SideMenu(isMenuOpen: !isSideMenuClosed),
       appBar: AppBar(
         title: const Text('Available Seats'),
         backgroundColor: AppColors.primaryColor,
@@ -161,14 +143,18 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         itemBuilder: (context, index) {
           String seatStatus =
               bookedSeats.length > index ? bookedSeats[index] : '';
+          bool isUserSeat = seatStatus == FirebaseAuth.instance.currentUser!.uid;
           return GestureDetector(
-            onTap: seatStatus.isEmpty ? () => bookSeat(index) : null,
+            onTap: seatStatus.isEmpty && !bookedSeats.contains(FirebaseAuth.instance.currentUser!.uid)
+                ? () => bookSeat(index)
+                : isUserSeat
+                    ? () => _showDeselectDialog(index)
+                    : null,
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primaryColor, width: 2.0),
                 borderRadius: BorderRadius.circular(8.0),
               ),
-              // padding: EdgeInsets.all(8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -196,10 +182,10 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    seatStatus.isEmpty ? 'Available' : 'Reserved',
+                    seatStatus.isEmpty ? 'Available' : isUserSeat ? 'Your Seat' : 'Reserved',
                     style: TextStyle(
                       fontSize: 14.0,
-                      color: seatStatus.isEmpty ? Colors.green : Colors.red,
+                      color: seatStatus.isEmpty ? Colors.green : isUserSeat ? Colors.blue : Colors.red,
                     ),
                   ),
                 ],
@@ -210,20 +196,13 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Handle the done button press
-          // Navigator.pop(context);
-          // Navigator.pushNamed(context, 'PaymentScreen');
-
           Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => PaymentScreen(
-                  // driverUid: widget.driverUid,
                   price: widget.price!,
                   rideId: widget.rideId!,
                   driverId: widget.driverUid!,
-                  // selectedCar: cars[index],
-                  // price: car['price'] ?? "N/A",
                 ),
               ));
         },
@@ -231,19 +210,12 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         backgroundColor: AppColors.primaryColor,
         foregroundColor: AppColors.secondaryColor,
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
           onPressed: () {
             fetchDriverAndShowBottomSheet(context, widget.driverUid!);
-            // showModalBottomSheet(
-            //   context: context,
-            //   builder: (context) {
-            //     return fetchDriverAndShowBottomSheet(context,widget.driverUid); // Assuming CarDetailsBottomSheet is already implemented
-            //   },
-            // );
           },
           child: Text('Show Car Details'),
           style: ElevatedButton.styleFrom(
@@ -255,6 +227,84 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         ),
       ),
     );
+  }
+
+  void _showDeselectDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Deselect Seat'),
+          content: Text('Are you sure you want to deselect this seat?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                deselectSeat(index);
+              },
+              child: Text('Deselect'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void deselectSeat(int index) async {
+    try {
+      // Fetch the driver's profile
+      DocumentSnapshot driverProfile = await FirebaseFirestore.instance
+          .collection('driver_profile')
+          .doc(widget.driverUid)
+          .get();
+      List<String> existingBookedSeats = [];
+      if (driverProfile.exists) {
+        existingBookedSeats = List<String>.from(
+          (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ?? [],
+        );
+      }
+
+      // Ensure the list is large enough
+      while (existingBookedSeats.length <= index) {
+        existingBookedSeats.add('');
+      }
+
+      // Update the seat at the specified index
+      existingBookedSeats[index] = '';
+
+      // Update Firestore for driver profile
+      await FirebaseFirestore.instance
+          .collection('driver_profile')
+          .doc(widget.driverUid)
+          .set(
+        {'booked_seats': existingBookedSeats},
+        SetOptions(merge: true),
+      );
+
+      // Update Firestore for user profile
+      await FirebaseFirestore.instance
+          .collection('passenger_profile')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .set({
+        'reserved_seat': FieldValue.delete(),
+        'ride_id': FieldValue.delete(),
+      }, SetOptions(merge: true));
+
+      // Update the local state
+      setState(() {
+        bookedSeats = existingBookedSeats;
+      });
+
+      print("Seat deselected successfully!");
+    } catch (e) {
+      print("Error deselecting seat: $e");
+    }
   }
 
   void fetchDriverAndShowBottomSheet(
