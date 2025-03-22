@@ -675,14 +675,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                   TextEditingController textEditingController,
                                   FocusNode focusNode,
                                   VoidCallback onFieldSubmitted) {
+                                textEditingController.text =
+                                    vehicleModelController.text;
                                 return TextFormField(
-                                  controller: textEditingController,
+                                  controller: vehicleModelController,
                                   focusNode: focusNode,
                                   decoration: InputDecoration(
                                     labelText: 'Vehicle Model',
                                     hintText: 'XXXX',
                                     border: OutlineInputBorder(),
-                                    suffixIcon: textEditingController
+                                    suffixIcon: vehicleModelController
                                             .text.isEmpty
                                         ? Icon(Icons.error, color: Colors.red)
                                         : Icon(Icons.check,
@@ -775,19 +777,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               },
                               onSelected: (String selection) {
                                 vehicleNameController.text = selection;
+                                // TextEditingController.fromValue(
+                                //     TextEditingValue(text: selection));
+                                // textEditingController.text = selection;
                                 print('Selected Vehicle Name: $selection');
                               },
                               fieldViewBuilder: (BuildContext context,
                                   TextEditingController textEditingController,
                                   FocusNode focusNode,
                                   VoidCallback onFieldSubmitted) {
+                                textEditingController.text =
+                                    vehicleNameController.text;
                                 return TextFormField(
                                   controller: textEditingController,
                                   focusNode: focusNode,
                                   decoration: InputDecoration(
                                     labelText: 'Vehicle Name',
                                     border: OutlineInputBorder(),
-                                    suffixIcon: textEditingController
+                                    suffixIcon: vehicleNameController
                                             .text.isEmpty
                                         ? Icon(Icons.error, color: Colors.red)
                                         : Icon(Icons.check,

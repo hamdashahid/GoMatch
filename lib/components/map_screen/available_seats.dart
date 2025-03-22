@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,6 +25,10 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isSideMenuClosed = true;
   int receiptNumber = 0;
+  // bool isUserSeat ;
+  // List<bool> isUserSeat = [];
+  int myseat = -1;
+
   // String ride = "ride";
   @override
   void initState() {
@@ -42,6 +48,8 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       if (driverProfile.exists) {
         // Safely access 'booked_seats' and 'total_seats' fields
         setState(() {
+          // isUserSeat = List<bool>.filled(totalSeats, false);
+
           FirebaseFirestore.instance
               .collection('driver_profile')
               .doc(widget.driverUid)
@@ -76,6 +84,7 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
             .doc(widget.driverUid)
             .get();
         List<String> existingBookedSeats = [];
+        List<bool> existingSeatStatus = [];
         if (driverProfile.exists) {
           existingBookedSeats = List<String>.from(
             (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ??
@@ -87,10 +96,12 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         while (existingBookedSeats.length <= index) {
           existingBookedSeats.add('');
         }
-
+        while (existingSeatStatus.length <= index) {
+          existingSeatStatus.add(false);
+        }
         // Update the seat at the specified index
         existingBookedSeats[index] = gender;
-
+        existingSeatStatus[index] = true;
         // Update Firestore for driver profile
         await FirebaseFirestore.instance
             .collection('driver_profile')
@@ -112,6 +123,9 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         // Update the local state
         setState(() {
           bookedSeats = existingBookedSeats;
+          // isUserSeat = existingSeatStatus;
+          // isUserSeat[index] = true;
+          myseat = index;
         });
 
         print("Seat booked successfully!");
@@ -143,13 +157,22 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
         itemBuilder: (context, index) {
           String seatStatus =
               bookedSeats.length > index ? bookedSeats[index] : '';
-          bool isUserSeat = seatStatus == FirebaseAuth.instance.currentUser!.uid;
+
+          // Check if the user has selected a seat
+          // bool hasUserSelectedASeat =
+          //     bookedSeats.contains(FirebaseAuth.instance.currentUser!.uid);
+          bool seats = index == myseat ? true : false;
           return GestureDetector(
-            onTap: seatStatus.isEmpty && !bookedSeats.contains(FirebaseAuth.instance.currentUser!.uid)
-                ? () => bookSeat(index)
-                : isUserSeat
-                    ? () => _showDeselectDialog(index)
-                    : null,
+            onTap: () {
+              if (seats) {
+                // Deselect the seat if it's already selected by the user
+
+                _showDeselectDialog(index);
+              } else if (seatStatus.isEmpty && myseat == -1) {
+                // Book the seat if it's available and the user hasn't selected any other seat
+                bookSeat(index);
+              }
+            },
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primaryColor, width: 2.0),
@@ -182,10 +205,18 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    seatStatus.isEmpty ? 'Available' : isUserSeat ? 'Your Seat' : 'Reserved',
+                    seatStatus.isEmpty
+                        ? 'Available'
+                        : index == myseat
+                            ? 'Your Seat'
+                            : 'Reserved',
                     style: TextStyle(
                       fontSize: 14.0,
-                      color: seatStatus.isEmpty ? Colors.green : isUserSeat ? Colors.blue : Colors.red,
+                      color: seatStatus.isEmpty
+                          ? Colors.green
+                          : index == myseat
+                              ? Colors.blue
+                              : Colors.red,
                     ),
                   ),
                 ],
@@ -197,18 +228,19 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PaymentScreen(
-                  price: widget.price!,
-                  rideId: widget.rideId!,
-                  driverId: widget.driverUid!,
-                ),
-              ));
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentScreen(
+                price: widget.price!,
+                rideId: widget.rideId!,
+                driverId: widget.driverUid!,
+              ),
+            ),
+          );
         },
-        child: Icon(Icons.done),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: AppColors.secondaryColor,
+        child: Icon(Icons.done),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: Padding(
@@ -217,13 +249,13 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
           onPressed: () {
             fetchDriverAndShowBottomSheet(context, widget.driverUid!);
           },
-          child: Text('Show Car Details'),
           style: ElevatedButton.styleFrom(
             foregroundColor: AppColors.primaryColor,
             backgroundColor: AppColors.secondaryColor,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             textStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
+          child: Text('Show Car Details'),
         ),
       ),
     );
@@ -269,7 +301,10 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
           (driverProfile.data() as Map<String, dynamic>)['booked_seats'] ?? [],
         );
       }
-
+      List<bool> existingSeatStatus = [];
+      while (existingSeatStatus.length <= index) {
+        existingSeatStatus.add(false);
+      }
       // Ensure the list is large enough
       while (existingBookedSeats.length <= index) {
         existingBookedSeats.add('');
@@ -277,7 +312,9 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
 
       // Update the seat at the specified index
       existingBookedSeats[index] = '';
-
+      existingSeatStatus[index] = false;
+      myseat = -1;
+      // isUserSeat[index] = false;
       // Update Firestore for driver profile
       await FirebaseFirestore.instance
           .collection('driver_profile')
@@ -299,6 +336,7 @@ class _AvailableSeatsState extends State<AvailableSeatsScreen> {
       // Update the local state
       setState(() {
         bookedSeats = existingBookedSeats;
+        // isUserSeat[index] = false;
       });
 
       print("Seat deselected successfully!");

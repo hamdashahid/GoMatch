@@ -264,9 +264,8 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
                   malePassengers: 0, // Replace with actual data
                   femalePassengers: 0, // Replace with actual data
                   available: /*car['vehicleSeat'] - car['booked_seats'].length ??*/
-                      (car['available_seats'] ?? 0) + 1
-                          ?? 
-                           10, // Replace with actual data for available seats
+                      (car['available_seats'] ?? 0) + 1 ??
+                          10, // Replace with actual data for available seats
                   price: car['price'] ?? "N/A", // Display price
                   selectedCarIndex: index == selectedCarIndex ? index : null,
                   onCardTap: (index) {
@@ -317,83 +316,92 @@ class _AvailableCarsScreenState extends State<AvailableCarsScreen> {
 
     try {
       // Fetch all drivers from Firestore
+      bool stopmatch = false;
+      bool pickupmatch = false;
+      bool dropoffmatch = false;
       QuerySnapshot driversSnapshot =
           await FirebaseFirestore.instance.collection('driver_profile').get();
 
       for (var doc in driversSnapshot.docs) {
         Map<String, dynamic> driverData = doc.data() as Map<String, dynamic>;
 
-        // Extract driver's location data (using empty maps as fallback)
+        // Extract driver's location data
         Map<String, dynamic> startLocation = driverData['start_location'] ?? {};
         Map<String, dynamic> endLocation = driverData['end_location'] ?? {};
         List stops = driverData['stops'] ?? [];
 
-        // Check and update available_seats if necessary (in case it's null or missing)
-        if (driverData['available_seats'] == null) {
-          doc.reference.update({'available_seats': driverData['total_seats']});
-        }
+        // Convert pickup and dropoff to GeoPoints
+        GeoPoint userPickupPoint = await convertToGeoPoint(pickup);
+        GeoPoint userDropoffPoint = await convertToGeoPoint(dropoff);
 
-        // Extract latitude and longitude for pickup and dropoff locations
-        double pickupLat = startLocation['latitude'] ?? 0.0;
-        double pickupLon = startLocation['longitude'] ?? 0.0;
-
-        double dropoffLat = endLocation['latitude'] ?? 0.0;
-        double dropoffLon = endLocation['longitude'] ?? 0.0;
-
-        GeoPoint pick = await convertToGeoPoint(pickup);
-        GeoPoint drop = await convertToGeoPoint(dropoff);
-
-        // Debug print for the extracted data
-        print("Driver Data: $driverData");
-        print("Pickup Location: $pickupLat, $pickupLon");
-        print("Dropoff Location: $dropoffLat, $dropoffLon");
-
-        // Calculate distances from pickup and dropoff to the driver's start and end locations
-        bool pickupMatch = calculateDistance(
-                pick,
+        // Calculate distances to driver's start and end locations
+        double driverPickupDistance = calculateDistance(userPickupPoint,
+            GeoPoint(startLocation['latitude'], startLocation['longitude']));
+        double driverDropoffDistance = calculateDistance(userDropoffPoint,
+            GeoPoint(endLocation['latitude'], endLocation['longitude']));
+        pickupmatch = calculateDistance(
+                userPickupPoint,
                 GeoPoint(
                     startLocation['latitude'], startLocation['longitude'])) <=
             maxDistance;
-
-        bool dropoffMatch = calculateDistance(drop,
+        dropoffmatch = calculateDistance(userDropoffPoint,
                 GeoPoint(endLocation['latitude'], endLocation['longitude'])) <=
             maxDistance;
+        // Compare stops' distances with user's destination
+        int closestStopIndex = -1;
+        double closestDistance = double.infinity;
+        String closestType =
+            ""; // To track whether it's a stop or the driver's end location
 
-        // Check if any stop matches the pickup or dropoff
-        bool stopMatch = stops.any((stop) {
+        // Check each stop
+        for (int i = 0; i < stops.length; i++) {
+          Map<String, dynamic> stop = stops[i];
           double stopLat = stop['latitude'] ?? 0.0;
           double stopLon = stop['longitude'] ?? 0.0;
 
-          // Ensure that stopLat and stopLon are valid
-          if (stopLat == 0.0 || stopLon == 0.0) {
-            return false; // Skip invalid stops
+          if (stopLat == 0.0 || stopLon == 0.0) continue; // Skip invalid stops
+
+          double stopDropoffDistance =
+              calculateDistance(userDropoffPoint, GeoPoint(stopLat, stopLon));
+          stopmatch =
+              calculateDistance(userDropoffPoint, GeoPoint(stopLat, stopLon)) <=
+                  maxDistance;
+          // Check if this stop is closer than the current closest destination
+          if (stopDropoffDistance < closestDistance) {
+            closestDistance = stopDropoffDistance;
+            closestStopIndex = i;
+            closestType = "stop";
           }
-          print("Stop Location: $stopLat, $stopLon");
-          double pickupDistance =
-              calculateDistance(pick, GeoPoint(stopLat, stopLon)) /
-                  1000; // Convert meters to kilometers
-          double dropoffDistance =
-              calculateDistance(drop, GeoPoint(stopLat, stopLon)) /
-                  1000; // Convert meters to kilometers
+        }
 
-          return pickupDistance <= maxDistance ||
-              dropoffDistance <= maxDistance;
-        });
+        // Compare the closest stop's distance with the driver's dropoff distance
+        if (driverDropoffDistance < closestDistance) {
+          closestDistance = driverDropoffDistance;
+          closestType = "driver_destination";
+        }
 
-        // If pickup and dropoff match or are close to any stop, add the car to availableCars
-        if ((pickupMatch && dropoffMatch) || stopMatch) {
+        // Add the driver to available cars based on the closest destination
+        if (closestDistance <= maxDistance) {
+          if (closestType == "stop") {
+            driverData['price'] = stops[closestStopIndex]
+                ['stop_price']; // Use stop-specific price
+            print(
+                "Closest match is a stop for driver: ${driverData['driverUid']}");
+          } else if (closestType == "driver_destination") {
+            driverData['price'] = driverData['price']; // Use driver's end price
+            print(
+                "Closest match is the driver's destination for driver: ${driverData['driverUid']}");
+          }
+        }
+        if (pickupmatch && dropoffmatch || stopmatch) {
           availableCars.add(driverData);
         }
       }
     } catch (e) {
       print("Error fetching available cars: $e");
     }
-    // print("Available Cars: $availableCars");
-    print("Available Cars List: $availableCars");
-    if (availableCars != null) {
-      print("Available cars count: ${availableCars.length}");
-    }
 
+    print("Available Cars List: $availableCars");
     return availableCars;
   }
 

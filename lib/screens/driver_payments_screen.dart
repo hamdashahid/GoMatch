@@ -94,8 +94,14 @@ class _DriverPaymentsScreenState extends State<DriverPaymentsScreen> {
                   itemCount: rides.length,
                   itemBuilder: (context, index) {
                     final ride = rides[index];
+                    final rideData = ride.data() as Map<String, dynamic>?;
+                    if (rideData == null ||
+                        !rideData.containsKey('paymentDate')) {
+                      return SizedBox
+                          .shrink(); // Skip this ride if paymentDate is missing
+                    }
                     final rideId = 'Ride #${index + 1}';
-                    final rawDate = ride['paymentDate'];
+                    final rawDate = ride['paymentDate'] ?? "";
                     final formattedDate = DateFormat('dd MMM yyyy, hh:mm a')
                         .format(rawDate.toDate());
                     final amount = ride['paymentAmount'];
