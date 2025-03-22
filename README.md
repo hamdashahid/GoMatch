@@ -42,20 +42,25 @@ GoMatch is a **Flutter-based ride-hailing app** designed for both **passengers a
 
 ## 📸 **Screenshots**  
 
+### **🚀 Splash Screens**  
+| Splash Screen 1 | Splash Screen 2 | Splash Screen 3 |
+|-----------------|-----------------|-----------------|
+| ![Splash1](screenshots/splash1.jpg) | ![Splash2](screenshots/splash2.jpg) | ![Splash3](screenshots/splash3.jpg) |
+
 ### **🚖 Passenger Mode**  
 | Home Screen | Ride Request | Seat Selection | Payment |
 |------------|------------|------------|------------|
-| ![Home](screenshots/home.png) | ![Ride](screenshots/ride_request.png) | ![Seat](screenshots/seat_selection.png) | ![Payment](screenshots/payment.png) |
+| ![Home](screenshots/home.jpg) | ![Ride](screenshots/ride_request.jpg) | ![Seat](screenshots/seat_selection.jpg) | ![Payment](screenshots/payment.jpg) |
 
 ### **🚘 Driver Mode**  
-| Driver Dashboard | Vehicle Registration | Stop Timings |
-|-----------------|------------------|--------------|
-| ![Dashboard](screenshots/driver_dashboard.png) | ![Registration](screenshots/vehicle_registration.png) | ![Stop Timings](screenshots/stop_timings.png) |
+| Driver Dashboard | Vehicle Registration | Stop Timings | Ride Requests |
+|-----------------|------------------|--------------|---------------|
+| ![Dashboard](screenshots/driver_dashboard.jpg) | ![Registration](screenshots/vehicle_registration.jpg) | ![Stop Timings](screenshots/stop_timings.jpg) | ![Ride Requests](screenshots/driver_ride_requests.jpg) |
 
 ### **🔐 Authentication & Admin Panel**  
-| Login | Signup | Admin Panel |
-|------|--------|------------|
-| ![Login](screenshots/login.png) | ![Signup](screenshots/signup.png) | ![Admin](screenshots/admin_panel.png) |
+| Login | Signup | Drivers Shown | Passengers Shown |
+|-------|--------|---------------|------------------|
+| ![Login](screenshots/login.jpg) | ![Signup](screenshots/signup.jpg) | ![Drivers](screenshots/admin_drivers.jpg) | ![Passengers](screenshots/admin_passengers.jpg) |
 
 > **Note:** Screenshots are from the latest build of the app.
 
