@@ -86,17 +86,22 @@ cd GoMatch
 
 ### 🚀 **Run the App**
 1. **Install dependencies**:
-   ```sh
-   flutter pub get
-   ```
+    ```sh
+    flutter pub get
+    ```
 2. **Configure Firebase**:
-   - Follow the instructions to set up Firebase for both Android and iOS [here](https://firebase.flutter.dev/docs/overview).
+    - Follow the instructions to set up Firebase for both Android and iOS [here](https://firebase.flutter.dev/docs/overview).
 3. **Run the app**:
-   ```sh
-   flutter run
-   ```
+    ```sh
+    flutter run
+    ```
 
 ---
 
 ## 📜 **License & Copyright**
 © 2024 GoMatch. All rights reserved.
+
+---
+
+## 👨‍💻 Developer
+**Hamda Shahid**
