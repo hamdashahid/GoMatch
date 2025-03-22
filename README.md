@@ -53,8 +53,9 @@ GoMatch is a **Flutter-based ride-hailing app** designed for both **passengers a
 
 ### **🚘 Driver Mode**
 | Dashboard | Registration | Stops | Ride Requests | Seats View |
-|----------|--------------|-------|---------------|------------|
+|-----------|--------------|-------|---------------|------------|
 | ![Dashboard](screenshots/driver_dashboard.jpg) | ![Registration](screenshots/vehicle_registration.jpg) | ![Stops](screenshots/stops_list.jpg) | ![Requests](screenshots/driver_ride_requests.jpg) | ![Seats](screenshots/seats_view.jpg) |
+
 
 ### **🔐 Authentication & Admin Panel**
 | Login | Signup | Drivers | Passengers |
